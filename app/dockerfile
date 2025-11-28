@@ -1,0 +1,43 @@
+# --------------------------
+# Stage 1: Build dependencies
+# --------------------------
+FROM php:8.2-fpm AS builder
+
+# Required system packages
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip \
+    libonig-dev libxml2-dev \
+    libzip-dev libpng-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+
+# Copy app
+WORKDIR /var/www
+COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Laravel optimizations
+RUN php artisan key:generate --force \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+
+# --------------------------
+# Stage 2: Run (Nginx + PHP)
+# --------------------------
+FROM nginx:alpine
+
+# Copy Laravel code to Nginx folder
+COPY --from=builder /var/www /var/www
+
+# Copy custom nginx config
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
