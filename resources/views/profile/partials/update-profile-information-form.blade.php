@@ -13,7 +13,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
@@ -49,6 +49,42 @@
                     @endif
                 </div>
             @endif
+        </div>
+
+        {{-- New fields --}}
+        <div class="mb-3">
+            <label for="phone_number" class="form-label">{{ __('Phone Number') }}</label>
+            <input id="phone_number" name="phone_number" type="text" class="form-control" value="{{ old('phone_number', $user->phone_number) }}" autocomplete="tel" />
+            @error('phone_number')
+            <div class="text-danger mt-2">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="address" class="form-label">{{ __('Address') }}</label>
+            <textarea id="address" name="address" class="form-control" autocomplete="street-address">{{ old('address', $user->address) }}</textarea>
+            @error('address')
+            <div class="text-danger mt-2">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="profile_picture" class="form-label">{{ __('Profile Picture') }}</label>
+            @if ($user->profile_picture)
+                <div class="mb-2">
+                    <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile Picture" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="remove_profile_picture" id="remove_profile_picture" value="1">
+                        <label class="form-check-label" for="remove_profile_picture">
+                            {{ __('Remove current picture') }}
+                        </label>
+                    </div>
+                </div>
+            @endif
+            <input id="profile_picture" name="profile_picture" type="file" class="form-control" />
+            @error('profile_picture')
+            <div class="text-danger mt-2">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="flex items-center gap-4">
