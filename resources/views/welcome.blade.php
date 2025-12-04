@@ -410,265 +410,387 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="mb-4">Discover Amazing Products at Unbeatable Prices</h1>
-                    <p class="mb-5">Shop our extensive collection of premium quality items. Fast shipping, competitive prices, and exceptional customer service.</p>
-                    <div class="hero-btns">
-                        <a href="{{ route('products.index') }}" class="btn btn-primary-gradient btn-hero">
-                            <i class="bi bi-shop me-2"></i> Shop Now
-                        </a>
-                        <a href="#products" class="btn btn-outline-light btn-hero">
-                            <i class="bi bi-arrow-down me-2"></i> Explore Products
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-6 mt-5 mt-lg-0">
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div class="card bg-transparent border-0">
-                                <div class="card-body text-center">
-                                    <div class="feature-icon mx-auto mb-3">
-                                        <i class="bi bi-truck"></i>
-                                    </div>
-                                    <h5 class="text-white">Free Shipping</h5>
-                                    <p class="text-white-50">On orders over $50</p>
+
+    <!-- Dynamic Landing Page Sections -->
+    @if(isset($sections) && $sections->count() > 0)
+        @foreach($sections as $section)
+            @if($section->section_type == 'hero')
+                <!-- Hero Section -->
+                <section class="hero">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6">
+                                <h1 class="mb-4">{{ $section->title ?? 'Discover Amazing Products at Unbeatable Prices' }}</h1>
+                                <p class="mb-5">{!! $section->content ?? 'Shop our extensive collection of premium quality items. Fast shipping, competitive prices, and exceptional customer service.' !!}</p>
+                                <div class="hero-btns">
+                                    <a href="{{ route('products.index') }}" class="btn btn-primary-gradient btn-hero">
+                                        <i class="bi bi-shop me-2"></i> Shop Now
+                                    </a>
+                                    <a href="#products" class="btn btn-outline-light btn-hero">
+                                        <i class="bi bi-arrow-down me-2"></i> Explore Products
+                                    </a>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="card bg-transparent border-0">
-                                <div class="card-body text-center">
-                                    <div class="feature-icon mx-auto mb-3">
-                                        <i class="bi bi-lock"></i>
-                                    </div>
-                                    <h5 class="text-white">Secure Payment</h5>
-                                    <p class="text-white-50">Safe and encrypted</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card bg-transparent border-0">
-                                <div class="card-body text-center">
-                                    <div class="feature-icon mx-auto mb-3">
-                                        <i class="bi bi-headset"></i>
-                                    </div>
-                                    <h5 class="text-white">24/7 Support</h5>
-                                    <p class="text-white-50">Dedicated assistance</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card bg-transparent border-0">
-                                <div class="card-body text-center">
-                                    <div class="feature-icon mx-auto mb-3">
-                                        <i class="bi bi-arrow-return-right"></i>
-                                    </div>
-                                    <h5 class="text-white">Easy Returns</h5>
-                                    <p class="text-white-50">30-day guarantee</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <div class="section-title">
-                <h2>Why Choose Us</h2>
-                <p>We provide the best shopping experience with quality products</p>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h4>Quality Guaranteed</h4>
-                        <p>All our products are carefully selected and guaranteed for quality. We stand behind every purchase with our quality promise.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-tag"></i>
-                        </div>
-                        <h4>Best Prices</h4>
-                        <p>We offer competitive pricing on all products with regular promotions and discounts for our valued customers.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <h4>Support Team</h4>
-                        <p>Our dedicated support team is available to assist you with any questions or concerns you may have.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Products Section -->
-    <section id="products" class="products">
-        <div class="container">
-            <div class="section-title">
-                <h2>Featured Products</h2>
-                <p>Check out our most popular items</p>
-            </div>
-
-            <div class="row">
-                @php
-                    $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
-                @endphp
-
-                @forelse($featuredProducts as $product)
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="card product-card h-100">
-                        @if($product->images->first())
-                            <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="card-img-top product-image" alt="{{ $product->name }}">
-                        @else
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top product-image" alt="{{ $product->name }}">
-                        @endif
-                        
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ Str::limit($product->name, 30) }}</h5>
-                            <p class="card-text text-muted">{{ Str::limit($product->description, 60) }}</p>
-                            <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="product-price">${{ number_format($product->price, 2) }}</span>
-                                    <div class="product-actions">
-                                        <a href="{{ route('products.show', $product->slug) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        @auth
-                                            <button 
-                                                class="btn btn-sm btn-outline-success add-to-cart-btn" 
-                                                data-product-id="{{ $product->id }}"
-                                                title="Add to Cart">
-                                                <i class="bi bi-cart-plus"></i>
-                                            </button>
-                                        @endauth
-                                    </div>
+                            <div class="col-lg-6 mt-5 mt-lg-0">
+                                <div class="row">
+                                    @if($section->elements->count() > 0)
+                                        @foreach($section->elements->take(4) as $element)
+                                            <div class="col-md-6 mb-4">
+                                                <div class="card bg-transparent border-0">
+                                                    <div class="card-body text-center">
+                                                        <div class="feature-icon mx-auto mb-3">
+                                                            <i class="{{ $element->content ?? 'bi bi-truck' }}"></i>
+                                                        </div>
+                                                        <h5 class="text-white">{{ $element->name ?? 'Feature' }}</h5>
+                                                        <p class="text-white-50">{{ $element->attributes['title'] ?? 'Feature description' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <!-- Default features if no elements exist -->
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card bg-transparent border-0">
+                                                <div class="card-body text-center">
+                                                    <div class="feature-icon mx-auto mb-3">
+                                                        <i class="bi bi-truck"></i>
+                                                    </div>
+                                                    <h5 class="text-white">Free Shipping</h5>
+                                                    <p class="text-white-50">On orders over $50</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card bg-transparent border-0">
+                                                <div class="card-body text-center">
+                                                    <div class="feature-icon mx-auto mb-3">
+                                                        <i class="bi bi-lock"></i>
+                                                    </div>
+                                                    <h5 class="text-white">Secure Payment</h5>
+                                                    <p class="text-white-50">Safe and encrypted</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card bg-transparent border-0">
+                                                <div class="card-body text-center">
+                                                    <div class="feature-icon mx-auto mb-3">
+                                                        <i class="bi bi-headset"></i>
+                                                    </div>
+                                                    <h5 class="text-white">24/7 Support</h5>
+                                                    <p class="text-white-50">Dedicated assistance</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card bg-transparent border-0">
+                                                <div class="card-body text-center">
+                                                    <div class="feature-icon mx-auto mb-3">
+                                                        <i class="bi bi-arrow-return-right"></i>
+                                                    </div>
+                                                    <h5 class="text-white">Easy Returns</h5>
+                                                    <p class="text-white-50">30-day guarantee</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                @empty
-                <div class="col-12">
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 3rem; color: #d1d5db;"></i>
-                        <p class="mt-3 text-muted">No products available at the moment.</p>
+                </section>
+            @elseif($section->section_type == 'features')
+                <!-- Features Section -->
+                <section id="{{ $section->name ?? 'features' }}" class="features">
+                    <div class="container">
+                        <div class="section-title">
+                            <h2>{{ $section->title ?? 'Why Choose Us' }}</h2>
+                            <p>{!! $section->content ?? 'We provide the best shopping experience with quality products' !!}</p>
+                        </div>
+
+                        <div class="row">
+                            @if($section->elements->count() > 0)
+                                @foreach($section->elements as $element)
+                                    <div class="col-md-4 mb-4">
+                                        <div class="feature-card">
+                                            <div class="feature-icon">
+                                                <i class="{{ $element->content ?? 'fas fa-shield-alt' }}"></i>
+                                            </div>
+                                            <h4>{{ $element->name ?? 'Feature' }}</h4>
+                                            <p>{!! $element->attributes['description'] ?? $element->content ?? 'Feature description' !!}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <!-- Default features if no elements exist -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="feature-card">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <h4>Quality Guaranteed</h4>
+                                        <p>All our products are carefully selected and guaranteed for quality. We stand behind every purchase with our quality promise.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="feature-card">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-tag"></i>
+                                        </div>
+                                        <h4>Best Prices</h4>
+                                        <p>We offer competitive pricing on all products with regular promotions and discounts for our valued customers.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="feature-card">
+                                        <div class="feature-icon">
+                                            <i class="fas fa-headset"></i>
+                                        </div>
+                                        <h4>Support Team</h4>
+                                        <p>Our dedicated support team is available to assist you with any questions or concerns you may have.</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+            @elseif($section->section_type == 'products')
+                <!-- Products Section -->
+                <section id="{{ $section->name ?? 'products' }}" class="products">
+                    <div class="container">
+                        <div class="section-title">
+                            <h2>{{ $section->title ?? 'Featured Products' }}</h2>
+                            <p>{!! $section->content ?? 'Check out our most popular items' !!}</p>
+                        </div>
+
+                        <div class="row">
+                            @php
+                                $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                            @endphp
+
+                            @forelse($featuredProducts as $product)
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card product-card h-100">
+                                    @if($product->images->first())
+                                        <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="card-img-top product-image" alt="{{ $product->name }}">
+                                    @else
+                                        <img src="https://via.placeholder.com/300x200" class="card-img-top product-image" alt="{{ $product->name }}">
+                                    @endif
+
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title">{{ Str::limit($product->name, 30) }}</h5>
+                                        <p class="card-text text-muted">{{ Str::limit($product->description, 60) }}</p>
+                                        <div class="mt-auto">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="product-price">${{ number_format($product->price, 2) }}</span>
+                                                <div class="product-actions">
+                                                    <a href="{{ route('products.show', $product->slug) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    @auth
+                                                        <button
+                                                            class="btn btn-sm btn-outline-success add-to-cart-btn"
+                                                            data-product-id="{{ $product->id }}"
+                                                            title="Add to Cart">
+                                                            <i class="bi bi-cart-plus"></i>
+                                                        </button>
+                                                    @endauth
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="col-12">
+                                <div class="text-center py-5">
+                                    <i class="bi bi-inbox" style="font-size: 3rem; color: #d1d5db;"></i>
+                                    <p class="mt-3 text-muted">No products available at the moment.</p>
+                                </div>
+                            </div>
+                            @endforelse
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <a href="{{ route('products.index') }}" class="btn btn-primary-gradient btn-hero">
+                                <i class="bi bi-arrow-right me-2"></i> View All Products
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            @elseif($section->section_type == 'cta')
+                <!-- CTA Section -->
+                <section class="cta">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8 text-center">
+                                <h2>{{ $section->title ?? 'Ready to Start Shopping?' }}</h2>
+                                <p>{!! $section->content ?? 'Become a member today and enjoy exclusive benefits, special discounts, and early access to new products.' !!}</p>
+                                <a href="{{ route('register') }}" class="btn btn-primary-gradient btn-hero">
+                                    <i class="bi bi-person-plus me-2"></i> Join Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            @elseif($section->section_type == 'newsletter')
+                <!-- Newsletter Section -->
+                <section class="newsletter">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="text-center mb-5">
+                                    <h2>{{ $section->title ?? 'Stay Updated' }}</h2>
+                                    <p>{!! $section->content ?? 'Subscribe to our newsletter to receive updates and offers.' !!}</p>
+                                </div>
+
+                                <form class="newsletter-form">
+                                    <div class="input-group">
+                                        <input type="email" class="form-control" placeholder="Enter your email address" required>
+                                        <button class="btn btn-primary" type="submit">Subscribe</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            @else
+                <!-- Default section -->
+                <section class="py-5">
+                    <div class="container">
+                        <h2>{{ $section->title }}</h2>
+                        <div>{!! $section->content !!}</div>
+                    </div>
+                </section>
+            @endif
+        @endforeach
+    @endif
+
+    <!-- Footer - Dynamic (Site Settings) or Static -->
+    @if(isset($siteSettings) && $siteSettings)
+        <!-- Site Settings Based Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <h5>{{ $siteSettings->setting_value['company_info']['name'] ?? config('app.name', 'Laravel') }}</h5>
+                        <p>{{ $siteSettings->setting_value['company_info']['description'] ?? 'Your premier destination for quality products at unbeatable prices.' }}</p>
+                        <div class="social-icons mt-4">
+                            @foreach($siteSettings->setting_value['social_links'] ?? [] as $social)
+                                <a href="{{ $social['url'] ?? '#' }}" class="social-icon" title="{{ $social['name'] ?? '' }}">
+                                    <i class="{{ $social['icon'] ?? 'fab fa-facebook-f' }}"></i>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                        <h5>Shop</h5>
+                        <div class="footer-links">
+                            @foreach($siteSettings->setting_value['shop_links'] ?? [] as $link)
+                                <a href="{{ $link['url'] ?? '#' }}">{{ $link['name'] ?? 'Link' }}</a><br>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                        <h5>Company</h5>
+                        <div class="footer-links">
+                            @foreach($siteSettings->setting_value['company_links'] ?? [] as $link)
+                                <a href="{{ $link['url'] ?? '#' }}">{{ $link['name'] ?? 'Link' }}</a><br>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <h5>Contact Info</h5>
+                        <div class="footer-links">
+                            <p><i class="fas fa-map-marker-alt me-2"></i> {{ $siteSettings->setting_value['company_info']['address'] ?? '123 Commerce St' }}</p>
+                            <p><i class="fas fa-phone me-2"></i> {{ $siteSettings->setting_value['company_info']['phone'] ?? '+1 (555) 123-4567' }}</p>
+                            <p><i class="fas fa-envelope me-2"></i> {{ $siteSettings->setting_value['company_info']['email'] ?? 'support@example.com' }}</p>
+                        </div>
                     </div>
                 </div>
-                @endforelse
-            </div>
 
-            <div class="text-center mt-5">
-                <a href="{{ route('products.index') }}" class="btn btn-primary-gradient btn-hero">
-                    <i class="bi bi-arrow-right me-2"></i> View All Products
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h2>Ready to Start Shopping?</h2>
-                    <p>Become a member today and enjoy exclusive benefits, special discounts, and early access to new products.</p>
-                    <a href="{{ route('register') }}" class="btn btn-primary-gradient btn-hero">
-                        <i class="bi bi-person-plus me-2"></i> Join Now
-                    </a>
+                <div class="border-top mt-4 pt-4 text-center">
+                    <p class="mb-0">&copy; {{ date('Y') }} {{ $siteSettings->setting_value['company_info']['name'] ?? config('app.name', 'Laravel') }}. All rights reserved.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </footer>
+    @else
+        <!-- Static Footer (fallback if no site settings exist) -->
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <h5>{{ config('app.name', 'Laravel') }}</h5>
+                        <p>Your premier destination for quality products at unbeatable prices. We're committed to providing excellent customer service and the best shopping experience.</p>
+                        <div class="social-icons mt-4">
+                            <a href="#" class="social-icon">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-icon">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-icon">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-icon">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                        </div>
+                    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-5 mb-lg-0">
-                    <h5>{{ config('app.name', 'Laravel') }}</h5>
-                    <p>Your premier destination for quality products at unbeatable prices. We're committed to providing excellent customer service and the best shopping experience.</p>
-                    <div class="social-icons mt-4">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-youtube"></i>
-                        </a>
+                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                        <h5>Shop</h5>
+                        <div class="footer-links">
+                            <a href="{{ route('products.index') }}">All Products</a>
+                            <a href="#">Featured Items</a>
+                            <a href="#">New Arrivals</a>
+                            <a href="#">Best Sellers</a>
+                            <a href="#">Sale</a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                        <h5>Company</h5>
+                        <div class="footer-links">
+                            <a href="#">About Us</a>
+                            <a href="#">Contact</a>
+                            <a href="#">Careers</a>
+                            <a href="#">Blog</a>
+                            <a href="#">Press</a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <h5>Contact Info</h5>
+                        <div class="footer-links">
+                            <p><i class="fas fa-map-marker-alt me-2"></i> 123 Commerce Street, City, State 12345</p>
+                            <p><i class="fas fa-phone me-2"></i> +1 (555) 123-4567</p>
+                            <p><i class="fas fa-envelope me-2"></i> support@example.com</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
-                    <h5>Shop</h5>
-                    <div class="footer-links">
-                        <a href="{{ route('products.index') }}">All Products</a>
-                        <a href="#">Featured Items</a>
-                        <a href="#">New Arrivals</a>
-                        <a href="#">Best Sellers</a>
-                        <a href="#">Sale</a>
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
-                    <h5>Company</h5>
-                    <div class="footer-links">
-                        <a href="#">About Us</a>
-                        <a href="#">Contact</a>
-                        <a href="#">Careers</a>
-                        <a href="#">Blog</a>
-                        <a href="#">Press</a>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <h5>Contact Info</h5>
-                    <div class="footer-links">
-                        <p><i class="fas fa-map-marker-alt me-2"></i> 123 Commerce Street, City, State 12345</p>
-                        <p><i class="fas fa-phone me-2"></i> +1 (555) 123-4567</p>
-                        <p><i class="fas fa-envelope me-2"></i> support@example.com</p>
-                    </div>
+                <div class="border-top mt-4 pt-4 text-center">
+                    <p class="mb-0">&copy; {{ date('Y') }} {{ config('app.name', 'Laravel') }}. All rights reserved.</p>
                 </div>
             </div>
-
-            <div class="border-top mt-4 pt-4 text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} {{ config('app.name', 'Laravel') }}. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    @endif
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script>
         // Add to cart functionality
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const productId = this.getAttribute('data-product-id');
-                
+
                 // Get CSRF token
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                
+
                 fetch('/cart/add', {
                     method: 'POST',
                     headers: {
@@ -691,7 +813,7 @@
                                 cartBadge.textContent = data.cart_count;
                             }
                         });
-                        
+
                         // Show success message
                         alert('Product added to cart successfully!');
                     } else {

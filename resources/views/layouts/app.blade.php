@@ -181,6 +181,21 @@
                                         <i class="bi bi-gear me-1"></i> {{ __('Settings') }}
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('admin.landing-page-sections.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-sections.index') }}">
+                                        <i class="bi bi-layout-wtf me-1"></i> {{ __('Landing Pages') }}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('admin.landing-page-builder.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-builder.index') }}">
+                                        <i class="bi bi-palette me-1"></i> {{ __('Page Builder') }}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('admin.site-settings.*') ? 'active' : '' }}" href="{{ route('admin.site-settings.edit') }}">
+                                        <i class="bi bi-gear-fill me-1"></i> {{ __('Site Settings') }}
+                                    </a>
+                                </li>
                             @endif
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('chat.*') ? 'active' : '' }}" href="{{ route('chat.index') }}">

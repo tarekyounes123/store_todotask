@@ -15,9 +15,7 @@ use App\Http\Controllers\Admin\StockManagementController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
 
 // Public product routes
 Route::get('/products', [PublicProductController::class, 'index'])->name('products.index');
@@ -105,6 +103,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/settings/backup', [\App\Http\Controllers\Admin\SettingsController::class, 'createBackup'])->name('settings.backup');
     Route::post('/settings/restore', [\App\Http\Controllers\Admin\SettingsController::class, 'restoreBackup'])->name('settings.restore');
     Route::delete('/settings/backup', [\App\Http\Controllers\Admin\SettingsController::class, 'deleteBackup'])->name('settings.delete-backup');
+
+    // Landing Page Management routes
+    Route::resource('landing-page-sections', \App\Http\Controllers\Admin\LandingPageSectionController::class);
+    Route::post('/landing-page-sections/sort', [\App\Http\Controllers\Admin\LandingPageSectionController::class, 'sort'])->name('landing-page-sections.sort');
+
+    Route::resource('landing-page-elements', \App\Http\Controllers\Admin\LandingPageElementController::class);
+    Route::post('/landing-page-elements/sort', [\App\Http\Controllers\Admin\LandingPageElementController::class, 'sort'])->name('landing-page-elements.sort');
+
+    // Landing Page Builder routes
+    Route::get('/landing-page-builder', [\App\Http\Controllers\Admin\LandingPageSectionController::class, 'builder'])->name('landing-page-builder.index');
+    Route::post('/landing-page-builder/save', [\App\Http\Controllers\Admin\LandingPageSectionController::class, 'saveBuilder'])->name('landing-page-builder.save');
+    Route::get('/landing-page-builder/load', [\App\Http\Controllers\Admin\LandingPageSectionController::class, 'loadBuilder'])->name('landing-page-builder.load');
+
+    // Site Settings routes
+    Route::get('/site-settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'edit'])->name('site-settings.edit');
+    Route::put('/site-settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'update'])->name('site-settings.update');
 });
 
 // API routes for notifications
