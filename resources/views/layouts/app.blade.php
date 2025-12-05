@@ -7,6 +7,9 @@
 
     <title>{{ config('app.name', 'ToDoTask') }}</title>
 
+    <!-- Favicon - Always use the one from public directory -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v={{ time() }}">
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 

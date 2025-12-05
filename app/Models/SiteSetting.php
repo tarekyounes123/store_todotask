@@ -18,4 +18,5 @@ class SiteSetting extends Model
 
     public const FOOTER_SETTINGS_KEY = 'footer_content';
     public const SITE_SETTINGS_KEY = 'site_settings';
+    public const LOGO_SETTINGS_KEY = 'logo_settings';
 }
