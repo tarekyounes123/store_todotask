@@ -181,9 +181,12 @@
                 }
 
                 // Update the specific item's subtotal display
-                const itemSubtotalElement = document.querySelector(`[data-item-id="${cartItemId}"] .item-subtotal`);
-                if(itemSubtotalElement && data.item_subtotal !== undefined) {
-                    itemSubtotalElement.textContent = '$' + data.item_subtotal.toFixed(2);
+                const itemRow = document.querySelector(`[data-item-id="${cartItemId}"]`);
+                if(itemRow) {
+                    const itemSubtotalElement = itemRow.querySelector('.item-subtotal');
+                    if(itemSubtotalElement && data.item_subtotal !== undefined) {
+                        itemSubtotalElement.textContent = '$' + data.item_subtotal.toFixed(2);
+                    }
                 }
 
                 // Check if we need to update the minus button disabled state
@@ -280,27 +283,28 @@
         // Update cart count in header (if element exists)
         const cartCountElement = document.querySelector('.cart-count');
         if (cartCountElement) {
-            cartCountElement.textContent = data.cart_count;
+            cartCountElement.textContent = data.cart_count || 0;
         }
 
-        // Update cart totals display
-        if (data.cart_total !== undefined) {
-            document.querySelectorAll('#cart-total').forEach(el => {
-                el.textContent = '$' + data.cart_total.toFixed(2);
-            });
-        }
+        // Update cart totals display with proper fallbacks
+        const subtotal = parseFloat(data.subtotal || 0).toFixed(2);
+        const shipping = parseFloat(data.shipping_cost || 0).toFixed(2);
+        const total = parseFloat(data.total || data.cart_total || 0).toFixed(2);
 
-        if (data.subtotal !== undefined) {
-            document.querySelectorAll('#cart-subtotal').forEach(el => {
-                el.textContent = '$' + data.subtotal.toFixed(2);
-            });
-        }
+        // Update subtotal
+        document.querySelectorAll('#cart-subtotal').forEach(el => {
+            el.textContent = '$' + subtotal;
+        });
 
-        if (data.shipping_cost !== undefined) {
-            document.querySelectorAll('#cart-shipping').forEach(el => {
-                el.textContent = '$' + data.shipping_cost.toFixed(2);
-            });
-        }
+        // Update shipping
+        document.querySelectorAll('#cart-shipping').forEach(el => {
+            el.textContent = '$' + shipping;
+        });
+
+        // Update total
+        document.querySelectorAll('#cart-total').forEach(el => {
+            el.textContent = '$' + total;
+        });
     }
 
     // Get updated cart summary from server

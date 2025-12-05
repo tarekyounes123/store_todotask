@@ -53,6 +53,7 @@ class Cart extends Model
      */
     public function getShippingCostAttribute(): float
     {
+        // Access the subtotal from the dynamic attribute
         $subtotal = $this->subtotal;
         return $subtotal < 50 && $subtotal > 0 ? 5.00 : 0.00;
     }
@@ -62,7 +63,7 @@ class Cart extends Model
      */
     public function getTotalAttribute(): float
     {
-        // If we're accessing the total attribute, calculate it dynamically
+        // Calculate and return the total (subtotal + shipping)
         return $this->subtotal + $this->shipping_cost;
     }
 }

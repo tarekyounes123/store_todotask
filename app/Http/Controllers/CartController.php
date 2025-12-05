@@ -131,7 +131,7 @@ class CartController extends Controller
     public function removeFromCart($id)
     {
         $cartItem = CartItem::findOrFail($id);
-        
+
         // Check if the user owns this cart item
         if ($cartItem->cart->user_id !== Auth::id() && $cartItem->cart->session_id !== session()->getId()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
@@ -139,7 +139,7 @@ class CartController extends Controller
 
         $cart = $cartItem->cart;
         $cartItem->delete();
-        
+
         $this->updateCartTotal($cart);
 
         return response()->json([
@@ -156,7 +156,7 @@ class CartController extends Controller
     public function clearCart()
     {
         $cart = $this->getOrCreateCart();
-        
+
         $cart->cartItems()->delete();
         $cart->total = 0;
         $cart->save();
@@ -203,7 +203,7 @@ class CartController extends Controller
         } else {
             // Create or get a session-based cart
             $sessionId = session()->getId();
-            
+
             $cart = Cart::firstOrCreate(
                 ['session_id' => $sessionId],
                 ['session_id' => $sessionId, 'total' => 0]
@@ -228,6 +228,9 @@ class CartController extends Controller
     public function getCartSummary()
     {
         $cart = $this->getOrCreateCart();
+
+        // Refresh the cart data to ensure we have the latest values
+        $cart = $cart->fresh();
 
         return response()->json([
             'cart_count' => $this->getCartItemCount(),
