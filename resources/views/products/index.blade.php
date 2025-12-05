@@ -14,13 +14,16 @@
 
 <div class="container container-custom py-4">
     <div class="row">
-        {{-- Sidebar for Filters --}}
-        <div class="col-md-3">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary-gradient text-white py-3">
+        {{-- Sidebar for Filters - Hidden on mobile by default, shown with toggle button --}}
+        <div class="col-md-3 mb-4 mb-md-0" id="filter-sidebar">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary-gradient text-white py-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>{{ __('Filters') }}</h5>
+                    <button class="btn btn-sm btn-light d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#filter-content" aria-expanded="true" aria-controls="filter-content">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
                 </div>
-                <div class="card-body">
+                <div class="card-body collapse show" id="filter-content">
                     <form action="{{ route('products.index') }}" method="GET" id="sidebar-filter-form">
                         {{-- Search Filter --}}
                         <div class="mb-3">
@@ -78,6 +81,14 @@
             </div>
         </div>
 
+        {{-- Mobile Filter Toggle Button --}}
+        <div class="d-md-none mb-4">
+            <button class="btn btn-primary-gradient w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#filter-sidebar" aria-expanded="false" aria-controls="filter-sidebar">
+                <span><i class="bi bi-funnel me-2"></i>{{ __('Filters') }}</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+
         {{-- Product Listing --}}
         <div class="col-md-9">
             @if (session('success'))
@@ -87,16 +98,16 @@
                 </div>
             @endif
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
                 <div>
                     <p class="mb-0 text-muted">
                         {{ __('Showing') }} <span id="product-count">{{ $products->total() }}</span> {{ __('products') }}
                     </p>
                 </div>
-                <div>
-                    <div class="input-group w-auto">
+                <div class="w-100 w-md-auto">
+                    <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="top-search-input" class="form-control me-2" placeholder="{{ __('Search products...') }}" value="{{ request('search') }}">
+                        <input type="text" id="top-search-input" class="form-control" placeholder="{{ __('Search products...') }}" value="{{ request('search') }}">
                     </div>
                 </div>
             </div>

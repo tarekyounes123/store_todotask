@@ -23,6 +23,11 @@
             --light-bg: #f8fafc;
         }
 
+        body {
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;
+        }
+
         .navbar {
             background: linear-gradient(135deg, var(--primary-color), #7c3aed) !important;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -32,7 +37,7 @@
 
         .navbar-brand {
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             color: white !important;
             display: flex;
             align-items: center;
@@ -45,7 +50,7 @@
         .nav-link {
             color: rgba(255, 255, 255, 0.85) !important;
             font-weight: 500;
-            padding: 0.5rem 1rem !important;
+            padding: 0.5rem 0.75rem !important;
             border-radius: 0.375rem;
             transition: all 0.2s ease;
         }
@@ -71,18 +76,20 @@
         .main-container {
             flex: 1;
             background-color: var(--light-bg);
+            min-height: calc(100vh - 120px); /* Account for navbar and footer */
         }
 
         .page-header {
             background: linear-gradient(135deg, var(--primary-color), #7c3aed);
             color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
         }
 
         .page-title {
             font-weight: 700;
             margin-bottom: 0.5rem;
+            font-size: 1.75rem;
         }
 
         .btn-primary-gradient {
@@ -109,18 +116,57 @@
         }
 
         .container-custom {
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem !important;
+                font-size: 0.9rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .container-custom {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-collapse {
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+
+            .main-container {
+                min-height: calc(100vh - 150px);
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 992px) {
+            .container-custom {
+                padding-left: 1.25rem !important;
+                padding-right: 1.25rem !important;
+            }
         }
     </style>
 </head>
 <body class="font-sans antialiased">
     <div class="d-flex flex-column min-vh-100">
         @section('navbar')
-        <nav class="navbar navbar-expand-md navbar-dark">
+        <nav class="navbar navbar-expand-md navbar-dark sticky-top">
             <div class="container-fluid container-custom">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'ToDoTask') }}
+                    <i class="bi bi-cart me-1"></i>{{ config('app.name', 'ToDoTask') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
@@ -141,60 +187,45 @@
                                 </a>
                             </li>
                             @if(Auth::user()->isAdmin())
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                                        <i class="bi bi-speedometer2 me-1"></i> {{ __('Admin Dashboard') }}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ str_starts_with(request()->route()->getName(), 'admin.') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-journal-check me-1"></i> {{ __('Admin') }}
                                     </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                        <i class="bi bi-people me-1"></i> {{ __('User Management') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
-                                        <i class="bi bi-tags me-1"></i> {{ __('Category Management') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
-                                        <i class="bi bi-box-seam me-1"></i> {{ __('Product Management') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
-                                        <i class="bi bi-receipt me-1"></i> {{ __('Order Management') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.stock-management.*') ? 'active' : '' }}" href="{{ route('admin.stock-management.index') }}">
-                                        <i class="bi bi-bar-chart-line me-1"></i> {{ __('Stock Management') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}" href="{{ route('admin.analytics.index') }}">
-                                        <i class="bi bi-bar-chart me-1"></i> {{ __('Analytics') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
-                                        <i class="bi bi-gear me-1"></i> {{ __('Settings') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.landing-page-sections.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-sections.index') }}">
-                                        <i class="bi bi-layout-wtf me-1"></i> {{ __('Landing Pages') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.landing-page-builder.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-builder.index') }}">
-                                        <i class="bi bi-palette me-1"></i> {{ __('Page Builder') }}
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.site-settings.*') ? 'active' : '' }}" href="{{ route('admin.site-settings.edit') }}">
-                                        <i class="bi bi-gear-fill me-1"></i> {{ __('Site Settings') }}
-                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                                            <i class="bi bi-speedometer2 me-1"></i> {{ __('Dashboard') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                            <i class="bi bi-people me-1"></i> {{ __('User Management') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+                                            <i class="bi bi-tags me-1"></i> {{ __('Category Management') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
+                                            <i class="bi bi-box-seam me-1"></i> {{ __('Product Management') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
+                                            <i class="bi bi-receipt me-1"></i> {{ __('Order Management') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.stock-management.*') ? 'active' : '' }}" href="{{ route('admin.stock-management.index') }}">
+                                            <i class="bi bi-bar-chart-line me-1"></i> {{ __('Stock Management') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}" href="{{ route('admin.analytics.index') }}">
+                                            <i class="bi bi-bar-chart me-1"></i> {{ __('Analytics') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
+                                            <i class="bi bi-gear me-1"></i> {{ __('Settings') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.landing-page-sections.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-sections.index') }}">
+                                            <i class="bi bi-layout-wtf me-1"></i> {{ __('Landing Pages') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.landing-page-builder.*') ? 'active' : '' }}" href="{{ route('admin.landing-page-builder.index') }}">
+                                            <i class="bi bi-palette me-1"></i> {{ __('Page Builder') }}
+                                        </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.site-settings.*') ? 'active' : '' }}" href="{{ route('admin.site-settings.edit') }}">
+                                            <i class="bi bi-gear-fill me-1"></i> {{ __('Site Settings') }}
+                                        </a></li>
+                                    </ul>
                                 </li>
                             @endif
                             <li class="nav-item">
@@ -251,7 +282,7 @@
                                     @else
                                         <i class="bi bi-person-circle me-1"></i>
                                     @endif
-                                    {{ Auth::user()->name }}
+                                    <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">

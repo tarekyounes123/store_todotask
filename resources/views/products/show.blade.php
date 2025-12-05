@@ -11,39 +11,14 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    @if ($product->images->isNotEmpty())
-                        <div id="productCarousel" class="carousel slide rounded" data-bs-ride="carousel">
-                            <div class="carousel-inner">
-                                @foreach ($product->images as $key => $image)
-                                    <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $image->image_path) }}" class="d-block w-100" alt="{{ $product->name }}" style="max-height: 500px; object-fit: contain; background-color: #f8fafc;">
-                                    </div>
-                                @endforeach
-                            </div>
-                            @if ($product->images->count() > 1)
-                                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                            @endif
-                        </div>
-                    @else
-                        <img src="https://via.placeholder.com/500x500.png?text=No+Image" class="d-block w-100 rounded" alt="No Image" style="max-height: 500px; object-fit: contain; background-color: #f8fafc;">
-                    @endif
-                </div>
+            <div class="row flex-column-reverse flex-md-row">
                 <div class="col-md-6">
                     <h1 class="mb-3">{{ $product->name }}</h1>
 
                     <!-- Rating Section -->
                     <div class="mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="fs-5 me-3">
+                        <div class="d-flex align-items-center flex-wrap">
+                            <div class="fs-5 me-3 mb-2 mb-md-0">
                                 <span class="text-warning" id="average-rating">
                                     @for ($i = 1; $i <= 5; $i++)
                                         <i class="bi {{ $i <= round($product->average_rating) ? 'bi-star-fill' : 'bi-star' }}"></i>
@@ -117,6 +92,32 @@
                             <i class="bi bi-bag-check me-2"></i>{{ __('Buy Now') }}
                         </button>
                     </div>
+                </div>
+
+                <div class="col-md-6 mb-4 mb-md-0">
+                    @if ($product->images->isNotEmpty())
+                        <div id="productCarousel" class="carousel slide rounded" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @foreach ($product->images as $key => $image)
+                                    <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
+                                        <img src="{{ asset('storage/' . $image->image_path) }}" class="d-block w-100" alt="{{ $product->name }}" style="max-height: 500px; object-fit: contain; background-color: #f8fafc;">
+                                    </div>
+                                @endforeach
+                            </div>
+                            @if ($product->images->count() > 1)
+                                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            @endif
+                        </div>
+                    @else
+                        <img src="https://via.placeholder.com/500x500.png?text=No+Image" class="d-block w-100 rounded" alt="No Image" style="max-height: 500px; object-fit: contain; background-color: #f8fafc;">
+                    @endif
                 </div>
             </div>
 

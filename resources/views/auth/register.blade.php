@@ -69,6 +69,17 @@
                             </div>
                         </div>
                     </form>
+
+                    <!-- Google Login Button -->
+                    <div class="row mt-4">
+                        <div class="col-md-8 offset-md-4">
+                            <div class="d-grid gap-2">
+                                <a href="{{ route('auth.google') }}" class="btn btn-danger">
+                                    <i class="bi bi-google me-2"></i> {{ __('Sign up with Google') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

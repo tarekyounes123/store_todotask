@@ -312,6 +312,43 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 576px) {
+            .hero {
+                padding: 60px 0;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-btns {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .feature-card {
+                margin-bottom: 1.5rem;
+            }
+
+            .section-title h2 {
+                font-size: 1.75rem;
+            }
+
+            .product-card {
+                margin-bottom: 2rem;
+            }
+
+            .footer .social-icons {
+                justify-content: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
@@ -324,6 +361,28 @@
 
             .feature-card {
                 margin-bottom: 1.5rem;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .product-image {
+                height: 180px;
+            }
+
+            .footer .row > [class*="col-"] {
+                margin-bottom: 2rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+
+            .section-title h2 {
+                font-size: 2.2rem;
             }
         }
     </style>
