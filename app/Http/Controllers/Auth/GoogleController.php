@@ -49,11 +49,11 @@ class GoogleController extends Controller
                 Auth::login($newUser, true);
             }
 
-            return redirect()->intended('/dashboard');
+            return redirect()->route('dashboard');
         } catch (\Exception $e) {
             // Log the error for debugging
             \Log::error('Google authentication error: ' . $e->getMessage());
-            
+
             return redirect('/login')->withErrors([
                 'google' => 'Google authentication failed. Please try again.'
             ]);
