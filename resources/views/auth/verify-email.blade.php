@@ -14,11 +14,14 @@
                         </div>
                     @endif
 
-                    {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+                    <p>{{ __('Before proceeding, please check your email for a verification link.') }}</p>
+                    <p>{{ __('If you did not receive the email') }},</p>
 
-                    <form class="d-inline" method="POST" action="{{ route('verification.send') }}">
+                    <form method="POST" action="{{ route('verification.send') }}">
                         @csrf
-                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('click here to request another') }}</button>.
+                        <button type="submit" class="btn btn-primary">
+                            {{ __('Click here to request another') }}
+                        </button>
                     </form>
                 </div>
             </div>

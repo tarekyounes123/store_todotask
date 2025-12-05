@@ -70,7 +70,21 @@ class SiteSettingController extends Controller
             ]);
         }
 
-        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting'));
+        // Get the title settings or create default if not exists
+        $titleSetting = SiteSetting::where('setting_key', SiteSetting::TITLE_SETTINGS_KEY)->first();
+
+        if (!$titleSetting) {
+            // Create default title settings
+            $titleSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::TITLE_SETTINGS_KEY,
+                'setting_value' => [
+                    'app_name' => config('app.name', 'ToDoTask'),
+                ],
+                'description' => 'Website title settings'
+            ]);
+        }
+
+        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting', 'titleSetting'));
     }
 
     /**
@@ -161,6 +175,27 @@ class SiteSettingController extends Controller
 
         $logoSetting->setting_value = $logoSettingsValue;
         $logoSetting->save();
+
+        // Handle site title settings
+        $titleSetting = SiteSetting::where('setting_key', SiteSetting::TITLE_SETTINGS_KEY)->first();
+        if (!$titleSetting) {
+            $titleSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::TITLE_SETTINGS_KEY,
+                'setting_value' => [
+                    'app_name' => config('app.name', 'ToDoTask'),
+                ],
+                'description' => 'Website title settings'
+            ]);
+        }
+
+        $titleSettingsValue = $titleSetting->setting_value;
+
+        if ($request->filled('app_name')) {
+            $titleSettingsValue['app_name'] = $request->input('app_name');
+        }
+
+        $titleSetting->setting_value = $titleSettingsValue;
+        $titleSetting->save();
 
         return redirect()->back()->with('success', 'Site settings updated successfully!');
     }

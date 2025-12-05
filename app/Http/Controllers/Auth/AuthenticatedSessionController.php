@@ -29,6 +29,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        // Check if the user has verified their email address
+        if ($user && ! $user->hasVerifiedEmail()) {
+            // If user hasn't verified email, redirect them to verification notice
+            return redirect()->route('verification.notice');
+        }
+
         // Always redirect to dashboard after login, regardless of previous page
         return redirect()->route('dashboard');
     }

@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ToDoTask') }}</title>
+    <!-- Dynamic Site Title -->
+    @php
+        try {
+            $titleSetting = \App\Models\SiteSetting::where('setting_key', \App\Models\SiteSetting::TITLE_SETTINGS_KEY)->first();
+            $siteTitle = $titleSetting ? ($titleSetting->setting_value['app_name'] ?? config('app.name', 'ToDoTask')) : config('app.name', 'ToDoTask');
+        } catch (\Exception $e) {
+            $siteTitle = config('app.name', 'ToDoTask');
+        }
+    @endphp
+
+    <title>{{ $siteTitle }}</title>
 
     <!-- Favicon - Always use the one from public directory -->
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v={{ time() }}">
@@ -169,7 +179,7 @@
         <nav class="navbar navbar-expand-md navbar-dark sticky-top">
             <div class="container-fluid container-custom">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    <i class="bi bi-cart me-1"></i>{{ config('app.name', 'ToDoTask') }}
+                    <i class="bi bi-cart me-1"></i>{{ $siteTitle }}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>

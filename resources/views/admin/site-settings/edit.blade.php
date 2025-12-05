@@ -21,6 +21,18 @@
                         @csrf
                         @method('PUT')
 
+                        <!-- Website Title Section -->
+                        <div class="mb-4 p-3 border rounded">
+                            <h4>Website Title</h4>
+
+                            <div class="mb-3">
+                                <label for="app_name" class="form-label">Website Name</label>
+                                <input type="text" class="form-control" id="app_name" name="app_name"
+                                       value="{{ old('app_name', $titleSetting->setting_value['app_name'] ?? config('app.name', 'ToDoTask')) }}">
+                                <small class="form-text text-muted">This will be displayed as the website title and in the navigation bar.</small>
+                            </div>
+                        </div>
+
                         <!-- Logo and Favicon Section -->
                         <div class="mb-4 p-3 border rounded">
                             <h4>Logo and Favicon</h4>

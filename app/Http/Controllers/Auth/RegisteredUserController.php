@@ -9,8 +9,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
 class RegisteredUserController extends Controller
 {
@@ -43,8 +45,12 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirect to email verification notice if verification is required
+        return redirect()->route('verification.notice');
     }
 }
