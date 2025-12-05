@@ -45,10 +45,10 @@
                                         <label for="favicon" class="form-label">Favicon</label>
                                         <input type="file" class="form-control" id="favicon" name="favicon" accept=".ico,.png,.jpg,.jpeg">
                                         <small class="form-text text-muted">Recommended format: ICO, PNG. Max size: 2MB.</small>
-                                        @if(isset($logoSetting->setting_value['favicon']) && $logoSetting->setting_value['favicon'])
+                                        @if(file_exists(public_path('favicon.ico')))
                                             <div class="mt-2">
                                                 <p>Current Favicon:</p>
-                                                <img src="{{ asset('storage/' . $logoSetting->setting_value['favicon']) }}" alt="Current Favicon" style="max-height: 32px; max-width: 32px;">
+                                                <img src="{{ asset('favicon.ico') }}?v={{ time() }}" alt="Current Favicon" style="max-height: 32px; max-width: 32px;">
                                             </div>
                                         @endif
                                     </div>
