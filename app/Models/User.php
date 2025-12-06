@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -9,8 +10,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Notifications\CustomPasswordResetNotification;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
 {
     public function tasks()
 {
@@ -69,6 +71,23 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'last_seen' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        // When sending the notification, make sure we also create a record in our custom table
+        \App\Models\PasswordResetToken::createNewToken(
+            $this->getEmailForPasswordReset(),
+            hash('sha256', $token)  // Store hashed for security
+        );
+
+        $this->notify(new CustomPasswordResetNotification($token));
     }
 
     /**

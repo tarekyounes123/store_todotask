@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // This migration is actually not needed since the table is created in the users migration
-        // We'll let the second migration handle all our customizations
+        Schema::table('password_reset_tokens', function (Blueprint $table) {
+            //
+        });
     }
 
     /**
@@ -20,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Nothing to do here since we didn't create the table in this migration
+        Schema::table('password_reset_tokens', function (Blueprint $table) {
+            //
+        });
     }
 };

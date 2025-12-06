@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\PasswordResetToken;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
@@ -36,27 +37,53 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        // Find the user
+        $user = User::where('email', $request->email)->first();
 
-                event(new PasswordReset($user));
-            }
-        );
+        if (!$user) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'We can\'t find a user with that email address.']);
+        }
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        // Check if the token exists and is valid
+        $tokenRecord = PasswordResetToken::where('email', $request->email)->first();
+
+        if (!$tokenRecord) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'This password reset token is invalid.']);
+        }
+
+        // Check if the token has already been used
+        if ($tokenRecord->isUsed()) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'This password reset token has already been used.']);
+        }
+
+        // Check if token is expired
+        if ($tokenRecord->isExpired()) {
+            // Clean up expired token
+            $tokenRecord->delete();
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'This password reset token has expired.']);
+        }
+
+        // Verify that the token matches (comparing the hash)
+        $hashedToken = hash('sha256', $request->token);
+        if ($tokenRecord->token !== $hashedToken) {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'This password reset token is invalid.']);
+        }
+
+        // Update the user's password
+        $user->password = Hash::make($request->password);
+        $user->remember_token = Str::random(60);
+        $user->save();
+
+        event(new PasswordReset($user));
+
+        // Mark the token as used after successful password reset
+        $tokenRecord->markAsUsed();
+
+        return redirect()->route('login')->with('status', 'Your password has been reset!');
     }
 }
