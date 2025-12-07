@@ -178,6 +178,70 @@
                     console.error('Error updating cart count:', error);
                 });
         }
+
+        // Handle favorite button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.favorite-button')) {
+                e.preventDefault();
+                const button = e.target.closest('.favorite-button');
+                const productId = button.getAttribute('data-product-id');
+                const isFavorited = button.getAttribute('data-is-favorited') === 'true';
+
+                // Determine the API endpoint based on current state
+                const url = isFavorited
+                    ? `/favorites/${productId}/remove`
+                    : `/favorites/${productId}/add`;
+
+                // Change button appearance immediately for better UX
+                const icon = button.querySelector('i');
+                if (isFavorited) {
+                    // Unfavorite
+                    icon.className = 'bi bi-heart';
+                    button.setAttribute('data-is-favorited', 'false');
+                } else {
+                    // Favorite
+                    icon.className = 'bi bi-heart-fill';
+                    button.setAttribute('data-is-favorited', 'true');
+                }
+
+                // Send AJAX request to toggle favorite status
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        // Revert the button state if the request failed
+                        const icon = button.querySelector('i');
+                        if (isFavorited) {
+                            icon.className = 'bi bi-heart-fill';
+                            button.setAttribute('data-is-favorited', 'true');
+                        } else {
+                            icon.className = 'bi bi-heart';
+                            button.setAttribute('data-is-favorited', 'false');
+                        }
+                        alert(data.message || 'Error toggling favorite status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling favorite:', error);
+                    // Revert the button state if there was an error
+                    const icon = button.querySelector('i');
+                    if (isFavorited) {
+                        icon.className = 'bi bi-heart-fill';
+                        button.setAttribute('data-is-favorited', 'true');
+                    } else {
+                        icon.className = 'bi bi-heart';
+                        button.setAttribute('data-is-favorited', 'false');
+                    }
+                    alert('Error toggling favorite status');
+                });
+            }
+        });
     });
 </script>
 @endpush
