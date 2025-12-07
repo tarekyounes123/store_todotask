@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\PasswordResetToken;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -31,26 +29,14 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // Get the user to check if email exists
-        $user = User::where('email', $request->email)->first();
+        // We will send the password reset link to this user. Once we have attempted
+        // to send the link, we will examine the response then see the message we
+        // need to display to the user. Finally, we'll send out a proper response.
+        $status = Password::sendResetLink($request->only('email'));
 
-        // For security, we send the same response whether the email exists or not
-        // But for this implementation, we'll allow the reset to proceed if user exists
-        if ($user) {
-            // Invalidate all previous tokens for this email
-            PasswordResetToken::invalidatePreviousTokens($request->email);
-
-            // Send the reset link using Laravel's password broker
-            $status = Password::sendResetLink(
-                $request->only('email')
-            );
-
-            if ($status === Password::RESET_LINK_SENT) {
-                return back()->with('status', 'Password reset link sent successfully! Please check your email.');
-            }
-        }
-
-        // For security, we return the same message regardless of whether the email exists
-        return back()->with('status', 'If your email address exists in our system, you will receive a password reset link shortly.');
+        return $status == Password::RESET_LINK_SENT
+                    ? redirect()->route('password.request')->with('status', __($status))
+                    : redirect()->route('password.request')->withInput($request->only('email'))
+                            ->withErrors(['email' => __($status)]);
     }
 }
