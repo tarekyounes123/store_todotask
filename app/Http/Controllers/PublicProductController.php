@@ -38,36 +38,34 @@ class PublicProductController extends Controller
 
         // Apply Price Range Filter
         if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->input('min_price'));
+            $minPrice = floatval($request->input('min_price'));
+            $query->where('price', '>=', $minPrice);
         }
         if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->input('max_price'));
+            $maxPrice = floatval($request->input('max_price'));
+            $query->where('price', '<=', $maxPrice);
         }
 
         // Apply Sorting
-        if ($request->filled('sort_by')) {
-            switch ($request->input('sort_by')) {
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'name_asc':
-                    $query->orderBy('name', 'asc');
-                    break;
-                case 'name_desc':
-                    $query->orderBy('name', 'desc');
-                    break;
-                case 'latest':
-                default:
-                    $query->latest(); // Default sorting
-                    break;
-            }
-        } else {
-            $query->latest(); // Default sorting if no sort_by is provided
+        $sortBy = $request->input('sort_by', 'latest');
+        switch ($sortBy) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'latest':
+            default:
+                $query->latest(); // Default sorting
+                break;
         }
-
 
         $products = $query->paginate(12)->withQueryString(); // Keep query string for pagination
         $categories = Category::all();

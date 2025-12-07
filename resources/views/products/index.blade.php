@@ -76,9 +76,26 @@
         const productListContainer = document.getElementById('product-list-container');
 
         function updateProducts() {
-            const formData = new FormData(filterForm);
-            const params = new URLSearchParams(formData).toString();
-            const url = `{{ route('products.index') }}?${params}`;
+            // Get form values manually to handle empty values properly
+            const search = document.querySelector('input[name="search"]').value.trim();
+            const category = document.querySelector('select[name="category"]').value;
+            const minPrice = document.querySelector('input[name="min_price"]').value.trim();
+            const maxPrice = document.querySelector('input[name="max_price"]').value.trim();
+            const sortBy = document.querySelector('select[name="sort_by"]').value;
+
+            // Build URL with parameters
+            let url = '{{ route('products.index') }}';
+            const params = new URLSearchParams();
+
+            if (search !== '') params.append('search', search);
+            if (category !== '') params.append('category', category);
+            if (minPrice !== '') params.append('min_price', minPrice);
+            if (maxPrice !== '') params.append('max_price', maxPrice);
+            if (sortBy !== 'latest') params.append('sort_by', sortBy);
+
+            if (params.toString().length > 0) {
+                url += '?' + params.toString();
+            }
 
             fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -86,7 +103,10 @@
             .then(response => response.text())
             .then(html => {
                 productListContainer.innerHTML = html;
-                window.history.pushState({path:url}, '', url);
+                window.history.pushState({path: url}, '', url);
+            })
+            .catch(error => {
+                console.error('Error fetching products:', error);
             });
         }
 
@@ -95,8 +115,20 @@
             updateProducts();
         });
 
+        // Add event listener with a small delay to avoid too many requests
+        let debounceTimer;
         filterForm.querySelectorAll('input, select').forEach(element => {
-            element.addEventListener('change', updateProducts);
+            element.addEventListener('change', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateProducts, 300);
+            });
+            // Also trigger on input for search box to provide immediate feedback
+            if (element.name === 'search') {
+                element.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(updateProducts, 500);
+                });
+            }
         });
 
         productListContainer.addEventListener('click', function(e) {
@@ -110,6 +142,9 @@
                 .then(html => {
                     productListContainer.innerHTML = html;
                     window.history.pushState({path:url}, '', url);
+                })
+                .catch(error => {
+                    console.error('Error fetching paginated products:', error);
                 });
             }
         });
@@ -124,6 +159,8 @@
                     alert('Product added to cart!');
                     updateCartCount();
                 }
+            }).catch(error => {
+                console.error('Error adding to cart:', error);
             });
         }
         window.addToCart = addToCart;
@@ -136,6 +173,9 @@
                     if (cartCountElement) {
                         cartCountElement.textContent = data.cart_count;
                     }
+                })
+                .catch(error => {
+                    console.error('Error updating cart count:', error);
                 });
         }
     });
