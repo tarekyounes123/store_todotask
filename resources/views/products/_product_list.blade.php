@@ -20,15 +20,24 @@
                             <a href="{{ route('products.show', $product->slug) }}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-eye"></i> View Details
                             </a>
-                            @auth
-                                <button class="btn btn-outline-danger btn-sm favorite-button" data-product-id="{{ $product->id }}" data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}">
-                                    <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-                                </button>
-                            @else
-                                <a href="{{ route('login') }}" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-heart"></i>
-                                </a>
-                            @endauth
+                            <div class="d-flex gap-2">
+                                @if($product->isInStock())
+                                    <button class="btn btn-success btn-sm" onclick="addToCart({{ $product->id }}, 1)">
+                                        <i class="bi bi-cart-plus"></i> Add
+                                    </button>
+                                @else
+                                    <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                                @endif
+                                @auth
+                                    <button class="btn btn-outline-danger btn-sm favorite-button" data-product-id="{{ $product->id }}" data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}">
+                                        <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                                    </button>
+                                @else
+                                    <a href="{{ route('login') }}" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-heart"></i>
+                                    </a>
+                                @endauth
+                            </div>
                         </div>
                     </div>
                 </div>
