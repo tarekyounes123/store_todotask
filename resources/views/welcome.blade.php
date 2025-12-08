@@ -624,7 +624,20 @@
 
                         <div class="row">
                             @php
-                                $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                                // Get featured products from settings if available, otherwise get random products
+                                if(isset($featuredProductsSetting) && $featuredProductsSetting) {
+                                    $featuredProductIds = $featuredProductsSetting->setting_value['product_ids'] ?? [];
+                                    if(!empty($featuredProductIds)) {
+                                        $featuredProducts = \App\Models\Product::with('images')
+                                            ->whereIn('id', $featuredProductIds)
+                                            ->orderByRaw('FIELD(id, ' . implode(',', $featuredProductIds) . ')') // Maintain order
+                                            ->get();
+                                    } else {
+                                        $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                                    }
+                                } else {
+                                    $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                                }
                             @endphp
 
                             @forelse($featuredProducts as $product)

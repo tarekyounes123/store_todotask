@@ -434,6 +434,26 @@
                             <button type="button" class="btn btn-secondary btn-sm" id="add-company-link">Add Company Link</button>
                         </div>
 
+                        <!-- Featured Products Selection -->
+                        <div class="mb-4 p-3 border rounded">
+                            <h4>Featured Products</h4>
+                            <p class="text-muted">Select products to display in the featured products section on the landing page</p>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <select name="featured_product_ids[]" id="featured_product_ids" class="form-control" multiple size="10">
+                                        @foreach($allProducts as $product)
+                                            <option value="{{ $product->id }}"
+                                                {{ in_array($product->id, $featuredProductsSetting->setting_value['product_ids'] ?? []) ? 'selected' : '' }}>
+                                                {{ $product->name }} (ID: {{ $product->id }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple products. Maximum 8 recommended.</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">Save Settings</button>
                             <a href="{{ url('/') }}" class="btn btn-secondary">Preview Website</a>

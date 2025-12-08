@@ -28,6 +28,9 @@ class WelcomeController extends Controller
             // Get site settings for footer
             $siteSettings = \App\Models\SiteSetting::where('setting_key', \App\Models\SiteSetting::FOOTER_SETTINGS_KEY)->first();
 
+            // Get featured products settings
+            $featuredProductsSetting = \App\Models\SiteSetting::where('setting_key', \App\Models\SiteSetting::FEATURED_PRODUCTS_SETTINGS_KEY)->first();
+
             \Log::info('Sections loaded: ' . $sections->count());
         } catch (\Exception $e) {
             // If there's an error with the service, fall back to empty collection
@@ -35,8 +38,9 @@ class WelcomeController extends Controller
             $sections = collect(); // Empty collection as fallback
             $footerContent = null;
             $siteSettings = null;
+            $featuredProductsSetting = null;
         }
 
-        return view('welcome', compact('sections', 'footerContent', 'siteSettings'));
+        return view('welcome', compact('sections', 'footerContent', 'siteSettings', 'featuredProductsSetting'));
     }
 }

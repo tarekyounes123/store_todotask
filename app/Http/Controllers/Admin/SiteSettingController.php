@@ -84,7 +84,23 @@ class SiteSettingController extends Controller
             ]);
         }
 
-        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting', 'titleSetting'));
+        // Get the featured products settings or create default if not exists
+        $featuredProductsSetting = SiteSetting::where('setting_key', SiteSetting::FEATURED_PRODUCTS_SETTINGS_KEY)->first();
+        if (!$featuredProductsSetting) {
+            // Create default featured products settings
+            $featuredProductsSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::FEATURED_PRODUCTS_SETTINGS_KEY,
+                'setting_value' => [
+                    'product_ids' => []
+                ],
+                'description' => 'Featured products selection for landing page'
+            ]);
+        }
+
+        // Get all products for the dropdown
+        $allProducts = \App\Models\Product::all();
+
+        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting', 'titleSetting', 'featuredProductsSetting', 'allProducts'));
     }
 
     /**
@@ -103,6 +119,8 @@ class SiteSettingController extends Controller
             'company_links' => 'sometimes|array',
             'favicon' => 'nullable|mimes:png,jpg,jpeg,gif,bmp,svg,ico|max:2048',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,bmp,svg|max:2048',
+            'featured_product_ids' => 'sometimes|array',
+            'featured_product_ids.*' => 'exists:products,id',
         ]);
 
         if ($validator->fails()) {
@@ -196,6 +214,24 @@ class SiteSettingController extends Controller
 
         $titleSetting->setting_value = $titleSettingsValue;
         $titleSetting->save();
+
+        // Handle featured products settings
+        $featuredProductsSetting = SiteSetting::where('setting_key', SiteSetting::FEATURED_PRODUCTS_SETTINGS_KEY)->first();
+        if (!$featuredProductsSetting) {
+            $featuredProductsSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::FEATURED_PRODUCTS_SETTINGS_KEY,
+                'setting_value' => [
+                    'product_ids' => []
+                ],
+                'description' => 'Featured products selection for landing page'
+            ]);
+        }
+
+        $featuredProductIds = $request->input('featured_product_ids', []);
+        $featuredProductsSetting->setting_value = [
+            'product_ids' => $featuredProductIds
+        ];
+        $featuredProductsSetting->save();
 
         return redirect()->back()->with('success', 'Site settings updated successfully!');
     }
