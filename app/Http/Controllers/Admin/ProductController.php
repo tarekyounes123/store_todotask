@@ -57,6 +57,18 @@ class ProductController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
+                // Additional security: verify that the file is actually an image
+                $imageInfo = getimagesize($image->getRealPath());
+                if (!$imageInfo) {
+                    return redirect()->back()->withErrors(['images' => 'Invalid image file.'])->withInput();
+                }
+
+                $extension = strtolower($image->getClientOriginalExtension());
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                if (!in_array($extension, $allowedExtensions)) {
+                    return redirect()->back()->withErrors(['images' => 'Invalid image file type.'])->withInput();
+                }
+
                 $path = $image->store('products', 'public');
                 $product->images()->create(['image_path' => $path]);
             }
@@ -121,6 +133,18 @@ class ProductController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
+                // Additional security: verify that the file is actually an image
+                $imageInfo = getimagesize($image->getRealPath());
+                if (!$imageInfo) {
+                    return redirect()->back()->withErrors(['images' => 'Invalid image file.'])->withInput();
+                }
+
+                $extension = strtolower($image->getClientOriginalExtension());
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                if (!in_array($extension, $allowedExtensions)) {
+                    return redirect()->back()->withErrors(['images' => 'Invalid image file type.'])->withInput();
+                }
+
                 $path = $image->store('products', 'public');
                 $product->images()->create(['image_path' => $path]);
             }

@@ -1,7 +1,7 @@
 <div class="product-card" data-product-id="{{ $product->id }}">
     <div class="product-image-container">
         @if ($product->images->isNotEmpty())
-            <img src="{{ asset('storage/' . $product->images->first()->image_path) }}"
+            <img src="{{ Storage::url($product->images->first()->image_path) }}"
                  class="product-image"
                  alt="{{ $product->name }}"
                  loading="lazy">

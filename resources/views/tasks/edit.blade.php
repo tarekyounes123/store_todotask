@@ -41,9 +41,9 @@
                             <label for="image" class="form-label">Image</label>
                             @if($task->images->first())
                                 <div>
-                                    <img src="{{ asset('images/' . $task->images->first()->image_path) }}" alt="Task Image" width="200">
+                                    <img src="{{ Storage::url($task->images->first()->image_path) }}" alt="Task Image" width="200">
                                 </div>
-                                <a href="{{ asset('images/' . $task->images->first()->image_path) }}" download="{{ $task->images->first()->image_path }}" class="btn btn-sm btn-info mt-2">Download Image</a>
+                                <a href="{{ Storage::url($task->images->first()->image_path) }}" download="{{ $task->images->first()->image_path }}" class="btn btn-sm btn-info mt-2">Download Image</a>
                             @else
                                 <p>No image available</p>
                             @endif

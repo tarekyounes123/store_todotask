@@ -5,7 +5,7 @@
                 <a href="{{ route('products.show', $product->slug) }}" class="text-decoration-none">
                     <div class="product-image-container">
                         @if ($product->images->isNotEmpty())
-                            <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="card-img-top" alt="{{ $product->name }}">
+                            <img src="{{ Storage::url($product->images->first()->image_path) }}" class="card-img-top" alt="{{ $product->name }}">
                         @else
                             <img src="https://via.placeholder.com/300x200.png?text=No+Image" class="card-img-top" alt="No Image">
                         @endif

@@ -71,7 +71,7 @@
                                 <div class="d-flex flex-wrap">
                                     @foreach ($product->images as $image)
                                         <div class="me-2 mb-2 border p-1 rounded">
-                                            <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $product->name }}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                                            <img src="{{ Storage::url($image->image_path) }}" alt="{{ $product->name }}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
                                             <div class="form-check mt-1">
                                                 <input class="form-check-input" type="checkbox" name="delete_images[]" value="{{ $image->id }}" id="delete_image_{{ $image->id }}">
                                                 <label class="form-check-label" for="delete_image_{{ $image->id }}">

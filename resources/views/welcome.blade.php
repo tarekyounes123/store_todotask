@@ -480,7 +480,7 @@
                         <div class="row align-items-center">
                             <div class="col-lg-6">
                                 <h1 class="mb-4">{{ $section->title ?? 'Discover Amazing Products at Unbeatable Prices' }}</h1>
-                                <p class="mb-5">{!! $section->content ?? 'Shop our extensive collection of premium quality items. Fast shipping, competitive prices, and exceptional customer service.' !!}</p>
+                                <p class="mb-5">{!! App\Helpers\HtmlSanitizer::sanitize($section->content ?? 'Shop our extensive collection of premium quality items. Fast shipping, competitive prices, and exceptional customer service.') !!}</p>
                                 <div class="hero-btns">
                                     <a href="{{ route('products.index') }}" class="btn btn-primary-gradient btn-hero">
                                         <i class="bi bi-shop me-2"></i> Shop Now
@@ -564,7 +564,7 @@
                     <div class="container">
                         <div class="section-title">
                             <h2>{{ $section->title ?? 'Why Choose Us' }}</h2>
-                            <p>{!! $section->content ?? 'We provide the best shopping experience with quality products' !!}</p>
+                            <p>{!! App\Helpers\HtmlSanitizer::sanitize($section->content ?? 'We provide the best shopping experience with quality products') !!}</p>
                         </div>
 
                         <div class="row">
@@ -573,10 +573,10 @@
                                     <div class="col-md-4 mb-4">
                                         <div class="feature-card">
                                             <div class="feature-icon">
-                                                <i class="{{ $element->content ?? 'fas fa-shield-alt' }}"></i>
+                                                <i class="{{ App\Helpers\HtmlSanitizer::convertIcons($element->content) ?: 'bi bi-shield-lock' }}"></i>
                                             </div>
                                             <h4>{{ $element->name ?? 'Feature' }}</h4>
-                                            <p>{!! $element->attributes['description'] ?? $element->content ?? 'Feature description' !!}</p>
+                                            <p>{!! App\Helpers\HtmlSanitizer::sanitize($element->attributes['description'] ?? $element->content ?? 'Feature description') !!}</p>
                                         </div>
                                     </div>
                                 @endforeach
@@ -585,7 +585,7 @@
                                 <div class="col-md-4 mb-4">
                                     <div class="feature-card">
                                         <div class="feature-icon">
-                                            <i class="fas fa-shield-alt"></i>
+                                            <i class="bi bi-shield-lock"></i>
                                         </div>
                                         <h4>Quality Guaranteed</h4>
                                         <p>All our products are carefully selected and guaranteed for quality. We stand behind every purchase with our quality promise.</p>
@@ -594,7 +594,7 @@
                                 <div class="col-md-4 mb-4">
                                     <div class="feature-card">
                                         <div class="feature-icon">
-                                            <i class="fas fa-tag"></i>
+                                            <i class="bi bi-tag"></i>
                                         </div>
                                         <h4>Best Prices</h4>
                                         <p>We offer competitive pricing on all products with regular promotions and discounts for our valued customers.</p>
@@ -603,7 +603,7 @@
                                 <div class="col-md-4 mb-4">
                                     <div class="feature-card">
                                         <div class="feature-icon">
-                                            <i class="fas fa-headset"></i>
+                                            <i class="bi bi-headset"></i>
                                         </div>
                                         <h4>Support Team</h4>
                                         <p>Our dedicated support team is available to assist you with any questions or concerns you may have.</p>
@@ -619,7 +619,7 @@
                     <div class="container">
                         <div class="section-title">
                             <h2>{{ $section->title ?? 'Featured Products' }}</h2>
-                            <p>{!! $section->content ?? 'Check out our most popular items' !!}</p>
+                            <p>{!! App\Helpers\HtmlSanitizer::sanitize($section->content ?? 'Check out our most popular items') !!}</p>
                         </div>
 
                         <div class="row">
@@ -654,7 +654,7 @@
                             <div class="col-lg-3 col-md-6 mb-4">
                                 <div class="card product-card h-100">
                                     @if($product->images->first())
-                                        <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="card-img-top product-image" alt="{{ $product->name }}">
+                                        <img src="{{ Storage::url($product->images->first()->image_path) }}" class="card-img-top product-image" alt="{{ $product->name }}">
                                     @else
                                         <img src="https://via.placeholder.com/300x200" class="card-img-top product-image" alt="{{ $product->name }}">
                                     @endif
@@ -707,7 +707,7 @@
                         <div class="row justify-content-center">
                             <div class="col-lg-8 text-center">
                                 <h2>{{ $section->title ?? 'Ready to Start Shopping?' }}</h2>
-                                <p>{!! $section->content ?? 'Become a member today and enjoy exclusive benefits, special discounts, and early access to new products.' !!}</p>
+                                <p>{!! App\Helpers\HtmlSanitizer::sanitize($section->content ?? 'Become a member today and enjoy exclusive benefits, special discounts, and early access to new products.') !!}</p>
                                 <a href="{{ route('register') }}" class="btn btn-primary-gradient btn-hero">
                                     <i class="bi bi-person-plus me-2"></i> Join Now
                                 </a>
@@ -723,7 +723,7 @@
                             <div class="col-lg-6">
                                 <div class="text-center mb-5">
                                     <h2>{{ $section->title ?? 'Stay Updated' }}</h2>
-                                    <p>{!! $section->content ?? 'Subscribe to our newsletter to receive updates and offers.' !!}</p>
+                                    <p>{!! App\Helpers\HtmlSanitizer::sanitize($section->content ?? 'Subscribe to our newsletter to receive updates and offers.') !!}</p>
                                 </div>
 
                                 <form class="newsletter-form">
@@ -741,7 +741,7 @@
                 <section class="py-5">
                     <div class="container">
                         <h2>{{ $section->title }}</h2>
-                        <div>{!! $section->content !!}</div>
+                        <div>{!! App\Helpers\HtmlSanitizer::sanitize($section->content) !!}</div>
                     </div>
                 </section>
             @endif
@@ -760,7 +760,7 @@
                         <div class="social-icons mt-4">
                             @foreach($siteSettings->setting_value['social_links'] ?? [] as $social)
                                 <a href="{{ $social['url'] ?? '#' }}" class="social-icon" title="{{ $social['name'] ?? '' }}">
-                                    <i class="{{ $social['icon'] ?? 'fab fa-facebook-f' }}"></i>
+                                    <i class="{{ App\Helpers\HtmlSanitizer::convertIcons($social['icon']) ?: 'bi bi-facebook' }}"></i>
                                 </a>
                             @endforeach
                         </div>
@@ -787,9 +787,9 @@
                     <div class="col-lg-4 col-md-6">
                         <h5>Contact Info</h5>
                         <div class="footer-links">
-                            <p><i class="fas fa-map-marker-alt me-2"></i> {{ $siteSettings->setting_value['company_info']['address'] ?? '123 Commerce St' }}</p>
-                            <p><i class="fas fa-phone me-2"></i> {{ $siteSettings->setting_value['company_info']['phone'] ?? '+1 (555) 123-4567' }}</p>
-                            <p><i class="fas fa-envelope me-2"></i> {{ $siteSettings->setting_value['company_info']['email'] ?? 'support@example.com' }}</p>
+                            <p><i class="bi bi-geo-alt me-2"></i> {{ $siteSettings->setting_value['company_info']['address'] ?? '123 Commerce St' }}</p>
+                            <p><i class="bi bi-telephone me-2"></i> {{ $siteSettings->setting_value['company_info']['phone'] ?? '+1 (555) 123-4567' }}</p>
+                            <p><i class="bi bi-envelope me-2"></i> {{ $siteSettings->setting_value['company_info']['email'] ?? 'support@example.com' }}</p>
                         </div>
                     </div>
                 </div>
@@ -809,16 +809,16 @@
                         <p>Your premier destination for quality products at unbeatable prices. We're committed to providing excellent customer service and the best shopping experience.</p>
                         <div class="social-icons mt-4">
                             <a href="#" class="social-icon">
-                                <i class="fab fa-facebook-f"></i>
+                                <i class="bi bi-facebook"></i>
                             </a>
                             <a href="#" class="social-icon">
-                                <i class="fab fa-twitter"></i>
+                                <i class="bi bi-twitter-x"></i>
                             </a>
                             <a href="#" class="social-icon">
-                                <i class="fab fa-instagram"></i>
+                                <i class="bi bi-instagram"></i>
                             </a>
                             <a href="#" class="social-icon">
-                                <i class="fab fa-youtube"></i>
+                                <i class="bi bi-youtube"></i>
                             </a>
                         </div>
                     </div>
@@ -848,9 +848,9 @@
                     <div class="col-lg-4 col-md-6">
                         <h5>Contact Info</h5>
                         <div class="footer-links">
-                            <p><i class="fas fa-map-marker-alt me-2"></i> 123 Commerce Street, City, State 12345</p>
-                            <p><i class="fas fa-phone me-2"></i> +1 (555) 123-4567</p>
-                            <p><i class="fas fa-envelope me-2"></i> support@example.com</p>
+                            <p><i class="bi bi-geo-alt me-2"></i> 123 Commerce Street, City, State 12345</p>
+                            <p><i class="bi bi-telephone me-2"></i> +1 (555) 123-4567</p>
+                            <p><i class="bi bi-envelope me-2"></i> support@example.com</p>
                         </div>
                     </div>
                 </div>

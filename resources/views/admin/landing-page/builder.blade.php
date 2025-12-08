@@ -104,7 +104,7 @@
                                             @endif
                                         @else
                                             @if($element->content)
-                                                {!! Str::limit($element->content, 100, '...') !!}
+                                                {!! Str::limit(App\Helpers\HtmlSanitizer::sanitize($element->content), 100, '...') !!}
                                             @else
                                                 <em>No content set</em>
                                             @endif

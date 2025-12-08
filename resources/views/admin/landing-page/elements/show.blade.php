@@ -52,7 +52,7 @@
                         <div class="col-md-6">
                             <h5>{{ __('Content') }}</h5>
                             <div class="border p-3 bg-light">
-                                {!! $element->content ?: 'No content set' !!}
+                                {!! App\Helpers\HtmlSanitizer::sanitize($element->content, 'No content set') !!}
                             </div>
                         </div>
                     </div>

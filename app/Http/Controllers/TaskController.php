@@ -56,11 +56,30 @@ class TaskController extends Controller
     ]);
 
     if ($request->hasFile('image')) {
-        $imageName = time().'.'.$request->image->extension();
-        $request->image->move(public_path('images'), $imageName);
+        // Validate the file
+        $request->validate([
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB
+        ]);
+
+        $file = $request->file('image');
+
+        // Additional security: verify that the file is actually an image
+        $imageInfo = getimagesize($file->getRealPath());
+        if (!$imageInfo) {
+            return redirect()->back()->withErrors(['image' => 'Invalid image file.'])->withInput();
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+        if (!in_array($extension, $allowedExtensions)) {
+            return redirect()->back()->withErrors(['image' => 'Invalid image file type.'])->withInput();
+        }
+
+        // Securely store the image using Laravel's storage system
+        $path = $file->store('task_images', 'public');
 
         $task->images()->create([
-            'image_path' => $imageName,
+            'image_path' => $path,
         ]);
     }
 
@@ -113,18 +132,37 @@ class TaskController extends Controller
             if ($request->hasFile('image')) {
                 // Delete old images and their files
                 foreach ($task->images as $image) {
-                    $oldImagePath = public_path('images') . '/' . $image->image_path;
+                    $oldImagePath = storage_path('app/public/' . $image->image_path);
                     if (file_exists($oldImagePath)) {
                         unlink($oldImagePath);
                     }
                     $image->delete();
                 }
 
-                $imageName = time().'.'.$request->image->extension();
-                $request->image->move(public_path('images'), $imageName);
+                // Validate the file
+                $request->validate([
+                    'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB
+                ]);
+
+                $file = $request->file('image');
+
+                // Additional security: verify that the file is actually an image
+                $imageInfo = getimagesize($file->getRealPath());
+                if (!$imageInfo) {
+                    return redirect()->back()->withErrors(['image' => 'Invalid image file.'])->withInput();
+                }
+
+                $extension = strtolower($file->getClientOriginalExtension());
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                if (!in_array($extension, $allowedExtensions)) {
+                    return redirect()->back()->withErrors(['image' => 'Invalid image file type.'])->withInput();
+                }
+
+                // Securely store the image using Laravel's storage system
+                $path = $file->store('task_images', 'public');
 
                 $task->images()->create([
-                    'image_path' => $imageName,
+                    'image_path' => $path,
                 ]);
             }
         } else {
@@ -147,7 +185,7 @@ class TaskController extends Controller
 
         // Delete associated images and their files
         foreach ($task->images as $image) {
-            $imagePath = public_path('images') . '/' . $image->image_path;
+            $imagePath = storage_path('app/public/' . $image->image_path);
             if (file_exists($imagePath)) {
                 unlink($imagePath);
             }

@@ -43,7 +43,7 @@
                                         <td class="text-truncate" style="max-width: 200px;">{{ $task->description }}</td>
                                         <td>
                                             @if($task->images->first())
-                                                <img src="{{ asset('images/' . $task->images->first()->image_path) }}" alt="{{ __('Task Image') }}" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                                                <img src="{{ Storage::url($task->images->first()->image_path) }}" alt="{{ __('Task Image') }}" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
                                             @else
                                                 {{ __('No Image') }}
                                             @endif

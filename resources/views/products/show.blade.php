@@ -6,7 +6,7 @@
         <div class="col-lg-7">
             <div class="main-image-container mb-3">
                 @if ($product->images->isNotEmpty())
-                    <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="img-fluid rounded-lg shadow-sm" alt="{{ $product->name }}" id="main-product-image">
+                    <img src="{{ Storage::url($product->images->first()->image_path) }}" class="img-fluid rounded-lg shadow-sm" alt="{{ $product->name }}" id="main-product-image">
                 @else
                     <img src="https://via.placeholder.com/600x600.png?text=No+Image" class="img-fluid rounded-lg shadow-sm" alt="No Image">
                 @endif
@@ -14,7 +14,7 @@
             @if ($product->images->count() > 1)
             <div class="thumbnail-images d-flex justify-content-center">
                 @foreach ($product->images as $image)
-                    <img src="{{ asset('storage/' . $image->image_path) }}" class="thumbnail-item img-thumbnail mx-1" alt="{{ $product->name }}" onclick="changeMainImage('{{ asset('storage/' . $image->image_path) }}')">
+                    <img src="{{ Storage::url($image->image_path) }}" class="thumbnail-item img-thumbnail mx-1" alt="{{ $product->name }}" onclick="changeMainImage('{{ Storage::url($image->image_path) }}')">
                 @endforeach
             </div>
             @endif
