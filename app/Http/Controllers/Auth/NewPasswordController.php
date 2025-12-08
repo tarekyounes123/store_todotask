@@ -56,7 +56,7 @@ class NewPasswordController extends Controller
         // Check if the token has already been used
         if ($tokenRecord->isUsed()) {
             return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'This password reset token has already been used.']);
+                ->withErrors(['email' => 'This link already been used.']);
         }
 
         // Check if token is expired
