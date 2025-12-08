@@ -1,4 +1,4 @@
-<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
     @forelse ($products as $product)
         <div class="col">
             <div class="card h-100 product-card border-0 shadow-sm">
@@ -59,15 +59,17 @@
 </div>
 
 <style>
-    /* Grid container for centered layout */
-    .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
-        justify-content: center;
-        padding: 0 1rem;
+    /* Grid container for aligned layout */
+    .row.row-cols-1.row-cols-sm-2.row-cols-md-4.g-4 {
+        justify-content: flex-start;
+        padding: 0;
+        margin: 0;
     }
 
     .col {
         display: flex;
         justify-content: center;
+        padding: 0.5rem;
     }
 
     .card.h-100.product-card {
@@ -78,7 +80,6 @@
         border: none !important;
         box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05) !important;
         overflow: hidden;
-        max-width: 280px;
         width: 100%;
         height: auto;
     }
@@ -122,39 +123,41 @@
     }
 
     /* Responsive adjustments for product listing */
-    @media (max-width: 992px) {
+    .row.row-cols-1.row-cols-sm-2.row-cols-md-4.g-4 {
+        --bs-gutter-x: 1.5rem;
+    }
+
+    @media (max-width: 991px) {
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-4.g-4 {
+            --bs-gutter-x: 1.25rem;
+        }
         .card.h-100.product-card {
-            max-width: 240px;
+            max-width: 100%;
             border-radius: 1.1rem !important;
         }
     }
 
-    @media (max-width: 768px) {
-        .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
-            padding: 0 0.5rem;
-        }
-
-        .card.h-100.product-card {
-            max-width: 220px;
-            border-radius: 1rem !important;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .col {
-            display: flex;
-            justify-content: center;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
+    @media (max-width: 767px) {
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-4.g-4 {
+            --bs-gutter-x: 1rem;
         }
 
         .card.h-100.product-card {
             max-width: 100%;
+            border-radius: 1rem !important;
+        }
+    }
+
+    @media (max-width: 575px) {
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-4.g-4 {
+            --bs-gutter-x: 0.75rem;
+        }
+
+        .col {
+            padding: 0.375rem;
+        }
+
+        .card.h-100.product-card {
             width: 100%;
         }
     }

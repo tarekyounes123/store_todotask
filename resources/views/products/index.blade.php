@@ -8,7 +8,7 @@
     </div>
 </div>
 
-<div class="container my-5">
+<div class="container-fluid px-4 my-5">
     <div class="row">
         <div class="col-lg-3">
             <div class="card shadow-sm mb-4">
