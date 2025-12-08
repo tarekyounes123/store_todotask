@@ -11,8 +11,16 @@
 </div>
 
 <div class="container-fluid px-4 py-4">
+    <!-- Mobile Filter Toggle -->
+    <div class="mobile-filter-toggle d-lg-none mb-4">
+        <button class="mobile-filter-btn" id="mobile-filter-toggle-btn">
+            <i class="bi bi-filter me-2"></i> {{ __('Filters') }}
+            <i class="bi bi-chevron-down ms-2 toggle-icon"></i>
+        </button>
+    </div>
+
     <!-- Modern Filters Card -->
-    <div class="filters-card mb-5">
+    <div class="filters-card mb-5" id="mobile-filters-container">
         <form action="{{ route('products.index') }}" method="GET" id="top-filter-form">
             <div class="filters-grid">
                 <div class="filter-field">
@@ -188,8 +196,64 @@
         box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
     }
 
-    /* Responsive adjustments */
+    /* Mobile filter toggle */
+    .mobile-filter-toggle {
+        display: flex;
+        justify-content: center;
+    }
+
+    .mobile-filter-btn {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        border: none;
+        padding: 0.875rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+    }
+
+    .mobile-filter-btn:hover {
+        background: linear-gradient(135deg, #4338ca, #6d28d9);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    .mobile-filter-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    }
+
+    .toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .toggle-icon.rotated {
+        transform: rotate(180deg);
+    }
+
+    #mobile-filters-container {
+        display: block;
+    }
+
+    /* For mobile view, filters are hidden by default */
     @media (max-width: 991px) {
+        #mobile-filters-container {
+            display: none;
+        }
+
+        #mobile-filters-container.show {
+            display: block;
+        }
+
         .filters-grid {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -394,6 +458,25 @@
                 });
             }
         });
+    });
+
+    // Mobile filter toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileFilterToggleBtn = document.getElementById('mobile-filter-toggle-btn');
+        const mobileFiltersContainer = document.getElementById('mobile-filters-container');
+        const toggleIcon = mobileFilterToggleBtn.querySelector('.toggle-icon');
+
+        if (mobileFilterToggleBtn && mobileFiltersContainer) {
+            mobileFilterToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Toggle the 'show' class on the container
+                mobileFiltersContainer.classList.toggle('show');
+
+                // Rotate the toggle icon
+                toggleIcon.classList.toggle('rotated');
+            });
+        }
     });
 </script>
 @endpush
