@@ -4,9 +4,11 @@
 <style>
     .favorites-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 1.25rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
         margin-top: 1rem;
+        padding: 1rem 0;
+        width: 100%;
     }
 
     .favorites-grid-empty {
@@ -32,15 +34,16 @@
 
     .product-card {
         background: linear-gradient(135deg, #ffffff, #f0f9ff);
-        border-radius: 1rem;
+        border-radius: 1.2rem;
         overflow: hidden;
-        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.08), 0 4px 6px -2px rgba(59, 130, 246, 0.01);
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         height: 100%;
         display: flex;
         flex-direction: column;
         position: relative;
         border: none;
+        width: 100%;
     }
 
     .product-card::before {
@@ -49,15 +52,15 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        opacity: 0.8;
+        height: 5px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+        opacity: 0.9;
         z-index: 10;
     }
 
     .product-card:hover {
-        transform: translateY(-8px) rotate(0.5deg);
-        box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.05);
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 25px 30px -5px rgba(59, 130, 246, 0.15), 0 15px 15px -5px rgba(59, 130, 246, 0.1);
     }
 
     .product-image-container {
@@ -253,18 +256,19 @@
         font-size: 0.875rem;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .favorites-grid {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            padding: 0.75rem 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .favorites-grid {
+            grid-template-columns: 1fr;
             gap: 1rem;
-        }
-
-        .product-actions {
-            flex-direction: column;
-        }
-
-        .view-details-btn {
-            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
         }
     }
 
@@ -300,75 +304,68 @@
             </div>
         </div>
     @else
-        <div class="container container-custom py-4" id="favorites-content-container">
-            <div class="row">
-                <div class="col-md-3">
-                    {{-- Empty space for potential sidebar, to match products/index design --}}
+        <div class="container-fluid px-4 py-4" id="favorites-content-container">
+            @if (session('success'))
+                <div class="success-alert">
+                    <i class="bi bi-check-circle"></i>
+                    <span>{{ session('success') }}</span>
                 </div>
-                <div class="col-md-9">
-                    @if (session('success'))
-                        <div class="success-alert">
-                            <i class="bi bi-check-circle"></i>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                    @endif
+            @endif
 
-                    <div class="favorites-grid" id="product-list-container">
-                        @foreach ($favoriteProducts as $product)
-                            <div class="product-card">
-                                <div class="product-image-container">
-                                    @if ($product->images->isNotEmpty())
-                                        <img src="{{ Storage::url($product->images->first()->image_path) }}"
-                                             class="product-image"
-                                             alt="{{ $product->name }}">
+            <div class="favorites-grid" id="product-list-container">
+                @foreach ($favoriteProducts as $product)
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            @if ($product->images->isNotEmpty())
+                                <img src="{{ Storage::url($product->images->first()->image_path) }}"
+                                     class="product-image"
+                                     alt="{{ $product->name }}">
+                            @else
+                                <img src="https://placehold.co/300x180/e2e8f0/64748b?text=No+Image"
+                                     class="product-image"
+                                     alt="No Image">
+                            @endif
+                            <div class="product-category">
+                                <i class="bi bi-tag me-1"></i>{{ $product->category?->name ?? 'Uncategorized' }}
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{{ $product->name }}</h3>
+                            <div class="product-price">
+                                ${{ number_format($product->price, 2) }}
+                            </div>
+                            <div class="product-actions">
+                                <a href="{{ route('products.show', $product->slug) }}"
+                                   class="view-details-btn">
+                                    <i class="bi bi-eye"></i>
+                                    {{ __('View Details') }}
+                                </a>
+                                <div>
+                                    @auth
+                                        <button
+                                            class="favorite-btn {{ $product->is_favorited_by_user ? 'active' : '' }}"
+                                            data-product-id="{{ $product->id }}"
+                                            data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}"
+                                            title="{{ $product->is_favorited_by_user ? 'Remove from Favorites' : 'Add to Favorites' }}"
+                                        >
+                                            <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                                        </button>
                                     @else
-                                        <img src="https://placehold.co/300x180/e2e8f0/64748b?text=No+Image"
-                                             class="product-image"
-                                             alt="No Image">
-                                    @endif
-                                    <div class="product-category">
-                                        <i class="bi bi-tag me-1"></i>{{ $product->category?->name ?? 'Uncategorized' }}
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3 class="product-name">{{ $product->name }}</h3>
-                                    <div class="product-price">
-                                        ${{ number_format($product->price, 2) }}
-                                    </div>
-                                    <div class="product-actions">
-                                        <a href="{{ route('products.show', $product->slug) }}"
-                                           class="view-details-btn">
-                                            <i class="bi bi-eye"></i>
-                                            {{ __('View Details') }}
+                                        <a href="{{ route('login') }}"
+                                           class="favorite-btn"
+                                           title="Login to add to Favorites">
+                                            <i class="bi bi-heart"></i>
                                         </a>
-                                        <div>
-                                            @auth
-                                                <button
-                                                    class="favorite-btn {{ $product->is_favorited_by_user ? 'active' : '' }}"
-                                                    data-product-id="{{ $product->id }}"
-                                                    data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}"
-                                                    title="{{ $product->is_favorited_by_user ? 'Remove from Favorites' : 'Add to Favorites' }}"
-                                                >
-                                                    <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-                                                </button>
-                                            @else
-                                                <a href="{{ route('login') }}"
-                                                   class="favorite-btn"
-                                                   title="Login to add to Favorites">
-                                                    <i class="bi bi-heart"></i>
-                                                </a>
-                                            @endauth
-                                        </div>
-                                    </div>
+                                    @endauth
                                 </div>
                             </div>
-                        @endforeach
+                        </div>
                     </div>
+                @endforeach
+            </div>
 
-                    <div class="pagination-container">
-                        {{ $favoriteProducts->withQueryString()->links() }}
-                    </div>
-                </div>
+            <div class="pagination-container">
+                {{ $favoriteProducts->withQueryString()->links() }}
             </div>
         </div>
     @endif

@@ -59,41 +59,103 @@
 </div>
 
 <style>
-    .product-card {
-        background: linear-gradient(135deg, #ffffff, #f0f9ff);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border-radius: 1rem;
-        position: relative;
-        border: none;
+    /* Grid container for centered layout */
+    .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
+        justify-content: center;
+        padding: 0 1rem;
     }
 
-    .product-card::before {
+    .col {
+        display: flex;
+        justify-content: center;
+    }
+
+    .card.h-100.product-card {
+        background: linear-gradient(135deg, #ffffff, #f0f9ff) !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        border-radius: 1.2rem !important;
+        position: relative;
+        border: none !important;
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05) !important;
+        overflow: hidden;
+        max-width: 280px;
+        width: 100%;
+        height: auto;
+    }
+
+    .card.h-100.product-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        opacity: 0.8;
+        height: 5px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+        opacity: 0.9;
         z-index: 10;
     }
 
-    .product-card:hover {
-        transform: translateY(-8px) rotate(0.5deg);
-        box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.05) !important;
+    .card.h-100.product-card:hover {
+        transform: translateY(-10px) scale(1.02) !important;
+        box-shadow: 0 25px 30px -5px rgba(59, 130, 246, 0.15), 0 15px 15px -5px rgba(59, 130, 246, 0.1) !important;
     }
 
-    .product-info {
-        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(240, 249, 255,1) 100%);
+    .card.h-100.product-card .card-body {
+        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(240, 249, 255,1) 100%) !important;
+        border-radius: 0 0 1.2rem 1.2rem !important;
+        position: relative;
+        z-index: 1;
+        padding: 1.25rem !important;
     }
 
     .product-image-container {
         overflow: hidden;
-        border-radius: 1rem 1rem 0 0;
+        border-radius: 1.2rem 1.2rem 0 0;
+        height: 220px;
     }
+
     .product-image-container img {
         aspect-ratio: 1 / 1;
         object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Responsive adjustments for product listing */
+    @media (max-width: 992px) {
+        .card.h-100.product-card {
+            max-width: 240px;
+            border-radius: 1.1rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
+            padding: 0 0.5rem;
+        }
+
+        .card.h-100.product-card {
+            max-width: 220px;
+            border-radius: 1rem !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4 {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .col {
+            display: flex;
+            justify-content: center;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        .card.h-100.product-card {
+            max-width: 100%;
+            width: 100%;
+        }
     }
 </style>
