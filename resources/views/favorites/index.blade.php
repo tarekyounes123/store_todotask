@@ -31,19 +31,33 @@
     }
 
     .product-card {
-        background: white;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #ffffff, #f0f9ff);
+        border-radius: 1rem;
         overflow: hidden;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        transition: all 0.2s ease;
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.08), 0 4px 6px -2px rgba(59, 130, 246, 0.01);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         height: 100%;
         display: flex;
         flex-direction: column;
+        position: relative;
+        border: none;
+    }
+
+    .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        opacity: 0.8;
+        z-index: 10;
     }
 
     .product-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateY(-8px) rotate(0.5deg);
+        box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.05);
     }
 
     .product-image-container {
@@ -78,19 +92,20 @@
     }
 
     .product-info {
-        padding: 1rem;
+        padding: 1.25rem;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
+        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(240, 249, 255,1) 100%);
     }
 
     .product-name {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.4rem;
         line-height: 1.4;
-        height: 2.8rem;
+        height: 3rem;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -98,63 +113,71 @@
     }
 
     .product-price {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 0.75rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #7c3aed;
+        margin-bottom: 0.8rem;
+        background: linear-gradient(90deg, #7c3aed, #ec4899);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .product-actions {
         margin-top: auto;
         display: flex;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
     .view-details-btn {
         flex: 1;
-        background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
         color: white;
         border: none;
-        padding: 0.6rem 0.8rem;
-        border-radius: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         text-decoration: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.25rem;
-        font-size: 0.875rem;
+        gap: 0.3rem;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);
     }
 
     .view-details-btn:hover {
-        background: linear-gradient(135deg, #4338ca, #6d28d9);
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, #7c3aed, #d946ef);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(139, 92, 246, 0.4);
     }
 
     .favorite-btn {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: white;
-        border: 2px solid #d1d5db;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
         cursor: pointer;
-        transition: all 0.2s ease;
-        color: #ef4444;
+        transition: all 0.3s ease;
+        color: #f43f5e;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .favorite-btn:hover {
-        transform: scale(1.1);
-        border-color: #ef4444;
+        transform: scale(1.1) rotate(5deg);
+        border-color: #f43f5e;
+        background: #fef2f2;
     }
 
     .favorite-btn.active {
-        background: #ef4444;
-        border-color: #ef4444;
+        background: #f43f5e;
+        border-color: #f43f5e;
         color: white;
     }
 

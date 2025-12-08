@@ -60,14 +60,37 @@
 
 <style>
     .product-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        background: linear-gradient(135deg, #ffffff, #f0f9ff);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 1rem;
+        position: relative;
+        border: none;
     }
+
+    .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        opacity: 0.8;
+        z-index: 10;
+    }
+
     .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-8px) rotate(0.5deg);
+        box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.05) !important;
     }
+
+    .product-info {
+        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(240, 249, 255,1) 100%);
+    }
+
     .product-image-container {
         overflow: hidden;
+        border-radius: 1rem 1rem 0 0;
     }
     .product-image-container img {
         aspect-ratio: 1 / 1;
