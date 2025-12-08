@@ -21,4 +21,5 @@ class SiteSetting extends Model
     public const LOGO_SETTINGS_KEY = 'logo_settings';
     public const TITLE_SETTINGS_KEY = 'title_settings';
     public const FEATURED_PRODUCTS_SETTINGS_KEY = 'featured_products';
+    public const FEATURED_PRODUCTS_LIMIT_SETTINGS_KEY = 'featured_products_limit';
 }

@@ -633,10 +633,20 @@
                                             ->orderByRaw('FIELD(id, ' . implode(',', $featuredProductIds) . ')') // Maintain order
                                             ->get();
                                     } else {
-                                        $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                                        // Use the custom limit if available, otherwise default to 8
+                                        $limit = 8;
+                                        if(isset($featuredProductsLimitSetting) && $featuredProductsLimitSetting) {
+                                            $limit = $featuredProductsLimitSetting->setting_value['max_limit'] ?? 8;
+                                        }
+                                        $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit($limit)->get();
                                     }
                                 } else {
-                                    $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit(8)->get();
+                                    // Use the custom limit if available, otherwise default to 8
+                                    $limit = 8;
+                                    if(isset($featuredProductsLimitSetting) && $featuredProductsLimitSetting) {
+                                        $limit = $featuredProductsLimitSetting->setting_value['max_limit'] ?? 8;
+                                    }
+                                    $featuredProducts = \App\Models\Product::with('images')->inRandomOrder()->limit($limit)->get();
                                 }
                             @endphp
 

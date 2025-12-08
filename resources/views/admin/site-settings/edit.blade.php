@@ -439,6 +439,16 @@
                             <h4>Featured Products</h4>
                             <p class="text-muted">Select products to display in the featured products section on the landing page</p>
 
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="featured_products_max_limit" class="form-label">Maximum Featured Products</label>
+                                    <input type="number" id="featured_products_max_limit" name="featured_products_max_limit"
+                                           class="form-control" min="1" max="20"
+                                           value="{{ $featuredProductsLimitSetting->setting_value['max_limit'] ?? 8 }}">
+                                    <small class="form-text text-muted">Set the maximum number of products that can be selected (1-20).</small>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <div class="col-md-12">
                                     <select name="featured_product_ids[]" id="featured_product_ids" class="form-control" multiple size="10">
@@ -449,7 +459,10 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple products. Maximum 8 recommended.</small>
+                                    <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple products. Maximum <span id="max-display">{{ $featuredProductsLimitSetting->setting_value['max_limit'] ?? 8 }}</span> products allowed.</small>
+                                    <div class="mt-2">
+                                        <span id="selected-count">0</span> of <span id="max-limit-display">{{ $featuredProductsLimitSetting->setting_value['max_limit'] ?? 8 }}</span> products selected
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -576,6 +589,72 @@ document.addEventListener('DOMContentLoaded', function() {
             this.closest('.company-link-item').remove();
         });
     });
+
+    // Featured products select functionality
+    const featuredSelect = document.getElementById('featured_product_ids');
+    const selectedCountElement = document.getElementById('selected-count');
+    const maxDisplayElement = document.getElementById('max-display');
+    const maxLimitDisplayElement = document.getElementById('max-limit-display');
+    const maxLimitInput = document.getElementById('featured_products_max_limit');
+
+    // Function to get current maximum selection limit
+    function getMaxSelection() {
+        let maxLimit = parseInt(maxLimitInput.value) || 8;
+        // Ensure it's within the valid range
+        maxLimit = Math.max(1, Math.min(20, maxLimit));
+        return maxLimit;
+    }
+
+    // Function to update the selected count
+    function updateSelectedCount() {
+        const selectedOptions = Array.from(featuredSelect.selectedOptions).length;
+        const maxSelection = getMaxSelection();
+
+        selectedCountElement.textContent = selectedOptions;
+        maxDisplayElement.textContent = maxSelection;
+        maxLimitDisplayElement.textContent = maxSelection;
+
+        // Disable unselected options if max selection is reached
+        if (selectedOptions >= maxSelection) {
+            Array.from(featuredSelect.options).forEach(option => {
+                if (!option.selected) {
+                    option.disabled = true;
+                }
+            });
+        } else {
+            // Enable all options if below max selection
+            Array.from(featuredSelect.options).forEach(option => {
+                if (!option.disabled || option.selected) {
+                    option.disabled = false;
+                }
+            });
+        }
+    }
+
+    // Update max selection when the limit input changes
+    maxLimitInput.addEventListener('input', function() {
+        const newLimit = parseInt(this.value) || 8;
+
+        // Validate the input range
+        if (newLimit < 1) {
+            this.value = 1;
+        } else if (newLimit > 20) {
+            this.value = 20;
+        }
+
+        // Update the display elements
+        maxDisplayElement.textContent = this.value;
+        maxLimitDisplayElement.textContent = this.value;
+
+        // Update the selection limits
+        updateSelectedCount();
+    });
+
+    // Initialize selected count on page load
+    updateSelectedCount();
+
+    // Add event listener for when selection changes
+    featuredSelect.addEventListener('change', updateSelectedCount);
 });
 </script>
 @endsection

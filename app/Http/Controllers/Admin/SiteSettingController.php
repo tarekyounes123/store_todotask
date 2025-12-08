@@ -97,10 +97,23 @@ class SiteSettingController extends Controller
             ]);
         }
 
+        // Get the featured products limit settings or create default if not exists
+        $featuredProductsLimitSetting = SiteSetting::where('setting_key', SiteSetting::FEATURED_PRODUCTS_LIMIT_SETTINGS_KEY)->first();
+        if (!$featuredProductsLimitSetting) {
+            // Create default featured products limit settings
+            $featuredProductsLimitSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::FEATURED_PRODUCTS_LIMIT_SETTINGS_KEY,
+                'setting_value' => [
+                    'max_limit' => 8
+                ],
+                'description' => 'Maximum number of featured products allowed'
+            ]);
+        }
+
         // Get all products for the dropdown
         $allProducts = \App\Models\Product::all();
 
-        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting', 'titleSetting', 'featuredProductsSetting', 'allProducts'));
+        return view('admin.site-settings.edit', compact('footerSetting', 'logoSetting', 'titleSetting', 'featuredProductsSetting', 'featuredProductsLimitSetting', 'allProducts'));
     }
 
     /**
@@ -119,8 +132,9 @@ class SiteSettingController extends Controller
             'company_links' => 'sometimes|array',
             'favicon' => 'nullable|mimes:png,jpg,jpeg,gif,bmp,svg,ico|max:2048',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,gif,bmp,svg|max:2048',
-            'featured_product_ids' => 'sometimes|array',
+            'featured_product_ids' => 'sometimes|array|max:' . ($request->input('featured_products_max_limit', 8)),
             'featured_product_ids.*' => 'exists:products,id',
+            'featured_products_max_limit' => 'sometimes|integer|min:1|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -232,6 +246,27 @@ class SiteSettingController extends Controller
             'product_ids' => $featuredProductIds
         ];
         $featuredProductsSetting->save();
+
+        // Handle featured products limit settings
+        $featuredProductsLimitSetting = SiteSetting::where('setting_key', SiteSetting::FEATURED_PRODUCTS_LIMIT_SETTINGS_KEY)->first();
+        if (!$featuredProductsLimitSetting) {
+            $featuredProductsLimitSetting = SiteSetting::create([
+                'setting_key' => SiteSetting::FEATURED_PRODUCTS_LIMIT_SETTINGS_KEY,
+                'setting_value' => [
+                    'max_limit' => 8
+                ],
+                'description' => 'Maximum number of featured products allowed'
+            ]);
+        }
+
+        $maxLimit = $request->input('featured_products_max_limit', 8);
+        // Ensure the limit is within a reasonable range (1-20)
+        $maxLimit = min(20, max(1, intval($maxLimit)));
+
+        $featuredProductsLimitSetting->setting_value = [
+            'max_limit' => $maxLimit
+        ];
+        $featuredProductsLimitSetting->save();
 
         return redirect()->back()->with('success', 'Site settings updated successfully!');
     }
