@@ -9,6 +9,27 @@
         margin-top: 1rem;
     }
 
+    .favorites-grid-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        width: 100%;
+    }
+
+    .page-content-container {
+        width: 100%;
+    }
+
+    .full-page-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        text-align: center;
+    }
+
     .product-card {
         background: white;
         border-radius: 0.5rem;
@@ -144,7 +165,12 @@
         border-radius: 0.5rem;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         max-width: 400px;
-        margin: 2rem auto;
+        margin: 3rem auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .empty-heart {
@@ -238,87 +264,91 @@
         </div>
     </div>
 
-    <div class="container container-custom py-4">
-        <div class="row">
-            <div class="col-md-3">
-                {{-- Empty space for potential sidebar, to match products/index design --}}
+    @if ($favoriteProducts->isEmpty())
+        <div class="container container-custom py-4 text-center" id="favorites-content-container">
+            <div class="empty-favorites full-page-center">
+                <i class="bi bi-heart empty-heart"></i>
+                <h3 class="empty-title">{{ __('You have no favorite products yet.') }}</h3>
+                <p class="empty-subtitle">{{ __('Browse our products and add some to your favorites!') }}</p>
+                <a href="{{ route('products.index') }}" class="browse-products-btn">
+                    <i class="bi bi-shop"></i>
+                    {{ __('Browse Products') }}
+                </a>
             </div>
-            <div class="col-md-9">
-                @if (session('success'))
-                    <div class="success-alert">
-                        <i class="bi bi-check-circle"></i>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                @endif
+        </div>
+    @else
+        <div class="container container-custom py-4" id="favorites-content-container">
+            <div class="row">
+                <div class="col-md-3">
+                    {{-- Empty space for potential sidebar, to match products/index design --}}
+                </div>
+                <div class="col-md-9">
+                    @if (session('success'))
+                        <div class="success-alert">
+                            <i class="bi bi-check-circle"></i>
+                            <span>{{ session('success') }}</span>
+                        </div>
+                    @endif
 
-                <div class="favorites-grid" id="product-list-container">
-                    @forelse ($favoriteProducts as $product)
-                        <div class="product-card">
-                            <div class="product-image-container">
-                                @if ($product->images->isNotEmpty())
-                                    <img src="{{ Storage::url($product->images->first()->image_path) }}"
-                                         class="product-image"
-                                         alt="{{ $product->name }}">
-                                @else
-                                    <img src="https://placehold.co/300x180/e2e8f0/64748b?text=No+Image"
-                                         class="product-image"
-                                         alt="No Image">
-                                @endif
-                                <div class="product-category">
-                                    <i class="bi bi-tag me-1"></i>{{ $product->category?->name ?? 'Uncategorized' }}
+                    <div class="favorites-grid" id="product-list-container">
+                        @foreach ($favoriteProducts as $product)
+                            <div class="product-card">
+                                <div class="product-image-container">
+                                    @if ($product->images->isNotEmpty())
+                                        <img src="{{ Storage::url($product->images->first()->image_path) }}"
+                                             class="product-image"
+                                             alt="{{ $product->name }}">
+                                    @else
+                                        <img src="https://placehold.co/300x180/e2e8f0/64748b?text=No+Image"
+                                             class="product-image"
+                                             alt="No Image">
+                                    @endif
+                                    <div class="product-category">
+                                        <i class="bi bi-tag me-1"></i>{{ $product->category?->name ?? 'Uncategorized' }}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-info">
-                                <h3 class="product-name">{{ $product->name }}</h3>
-                                <div class="product-price">
-                                    ${{ number_format($product->price, 2) }}
-                                </div>
-                                <div class="product-actions">
-                                    <a href="{{ route('products.show', $product->slug) }}"
-                                       class="view-details-btn">
-                                        <i class="bi bi-eye"></i>
-                                        {{ __('View Details') }}
-                                    </a>
-                                    <div>
-                                        @auth
-                                            <button
-                                                class="favorite-btn {{ $product->is_favorited_by_user ? 'active' : '' }}"
-                                                data-product-id="{{ $product->id }}"
-                                                data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}"
-                                                title="{{ $product->is_favorited_by_user ? 'Remove from Favorites' : 'Add to Favorites' }}"
-                                            >
-                                                <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-                                            </button>
-                                        @else
-                                            <a href="{{ route('login') }}"
-                                               class="favorite-btn"
-                                               title="Login to add to Favorites">
-                                                <i class="bi bi-heart"></i>
-                                            </a>
-                                        @endauth
+                                <div class="product-info">
+                                    <h3 class="product-name">{{ $product->name }}</h3>
+                                    <div class="product-price">
+                                        ${{ number_format($product->price, 2) }}
+                                    </div>
+                                    <div class="product-actions">
+                                        <a href="{{ route('products.show', $product->slug) }}"
+                                           class="view-details-btn">
+                                            <i class="bi bi-eye"></i>
+                                            {{ __('View Details') }}
+                                        </a>
+                                        <div>
+                                            @auth
+                                                <button
+                                                    class="favorite-btn {{ $product->is_favorited_by_user ? 'active' : '' }}"
+                                                    data-product-id="{{ $product->id }}"
+                                                    data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}"
+                                                    title="{{ $product->is_favorited_by_user ? 'Remove from Favorites' : 'Add to Favorites' }}"
+                                                >
+                                                    <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                                                </button>
+                                            @else
+                                                <a href="{{ route('login') }}"
+                                                   class="favorite-btn"
+                                                   title="Login to add to Favorites">
+                                                    <i class="bi bi-heart"></i>
+                                                </a>
+                                            @endauth
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @empty
-                        <div class="empty-favorites">
-                            <i class="bi bi-heart empty-heart"></i>
-                            <h3 class="empty-title">{{ __('You have no favorite products yet.') }}</h3>
-                            <p class="empty-subtitle">{{ __('Browse our products and add some to your favorites!') }}</p>
-                            <a href="{{ route('products.index') }}" class="browse-products-btn">
-                                <i class="bi bi-shop"></i>
-                                {{ __('Browse Products') }}
-                            </a>
-                        </div>
-                    @endforelse
-                </div>
+                        @endforeach
+                    </div>
 
-                <div class="pagination-container">
-                    {{ $favoriteProducts->withQueryString()->links() }}
+                    <div class="pagination-container">
+                        {{ $favoriteProducts->withQueryString()->links() }}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>
 
 <script>
@@ -355,6 +385,9 @@
                             favoriteButton.classList.add('active');
                             favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i>';
                             favoriteButton.title = 'Remove from Favorites';
+
+                            // Remove empty state class if it exists since we now have favorites
+                            productListContainer.classList.remove('favorites-grid-empty');
                         } else {
                             favoriteButton.classList.remove('active');
                             favoriteButton.innerHTML = '<i class="bi bi-heart"></i>';
@@ -375,14 +408,16 @@
 
                                     // If no more favorites, show empty state
                                     if (document.querySelectorAll('.product-card').length === 0) {
-                                        productListContainer.innerHTML = `
-                                            <div class="empty-favorites">
+                                        // Replace the entire content with the centered empty state
+                                        const container = document.getElementById('favorites-content-container');
+                                        container.innerHTML = `
+                                            <div class="empty-favorites full-page-center text-center">
                                                 <i class="bi bi-heart empty-heart"></i>
-                                                <h3 class="empty-title">{{ __('You have no favorite products yet.') }}</h3>
-                                                <p class="empty-subtitle">{{ __('Browse our products and add some to your favorites!') }}</p>
-                                                <a href="{{ route('products.index') }}" class="browse-products-btn">
+                                                <h3 class="empty-title">You have no favorite products yet.</h3>
+                                                <p class="empty-subtitle">Browse our products and add some to your favorites!</p>
+                                                <a href="/products" class="browse-products-btn">
                                                     <i class="bi bi-shop"></i>
-                                                    {{ __('Browse Products') }}
+                                                    Browse Products
                                                 </a>
                                             </div>
                                         `;
