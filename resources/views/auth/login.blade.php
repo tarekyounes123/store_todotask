@@ -13,6 +13,18 @@
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
+                    @if(session('message'))
+                        <div class="alert alert-danger mb-4">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+
+                    @if(request('message'))
+                        <div class="alert alert-danger mb-4">
+                            {{ request('message') }}
+                        </div>
+                    @endif
+
                     <div class="mb-4">
                         <label for="email" class="form-label fw-medium">{{ __('Email Address') }}</label>
                         <div class="input-group">

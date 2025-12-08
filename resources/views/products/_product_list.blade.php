@@ -14,9 +14,9 @@
                             <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }}"></i>
                         </button>
                     @else
-                        <a href="{{ route('login') }}" class="favorite-button">
+                        <button class="favorite-button login-required">
                             <i class="bi bi-heart"></i>
-                        </a>
+                        </button>
                     @endauth
                 </div>
             </a>

@@ -328,6 +328,14 @@
             if (e.target.closest('.favorite-button')) {
                 e.preventDefault();
                 const button = e.target.closest('.favorite-button');
+
+                // Check if it's the login redirect button (for guest users)
+                if (button.classList.contains('login-required')) {
+                    // Redirect to login page with message parameter
+                    window.location.href = '{{ route('login') }}?message=You need to be logged in to add products to favorites';
+                    return;
+                }
+
                 const productId = button.getAttribute('data-product-id');
                 const isFavorited = button.getAttribute('data-is-favorited') === 'true';
 
