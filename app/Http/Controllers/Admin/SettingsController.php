@@ -124,19 +124,29 @@ class SettingsController extends Controller
                 $sql .= "-- Backup for table: {$table}\n";
                 $sql .= "DROP TABLE IF EXISTS `{$table}`;\n";
 
-                // Get table structure
-                $createResult = DB::select("SHOW CREATE TABLE `{$table}`");
+                // Get table structure - validate table name first
+                $allowedTables = $this->getDatabaseTables();
+                if (!in_array($table, $allowedTables)) {
+                    continue; // Skip invalid tables
+                }
+
+                // Validate table name to prevent SQL injection
+                if (!preg_match('/^[a-zA-Z0-9_-]+$/', $table)) {
+                    continue; // Skip tables with invalid names
+                }
+
+                $createResult = DB::select(DB::raw("SHOW CREATE TABLE `{$table}`"));
                 if (!empty($createResult)) {
                     $sql .= $createResult[0]->{'Create Table'} . ";\n\n";
 
-                    // Get table data
-                    $rows = DB::select("SELECT * FROM `{$table}`");
-                    if (!empty($rows)) {
+                    // Get table data with proper table name validation
+                    $rows = DB::table($table)->get();
+                    if ($rows->isNotEmpty()) {
                         $sql .= "INSERT INTO `{$table}` VALUES \n";
                         $values = [];
                         foreach ($rows as $row) {
                             $rowValues = [];
-                            foreach ($row as $value) {
+                            foreach ($row->getAttributes() as $value) {
                                 if ($value === null) {
                                     $rowValues[] = 'NULL';
                                 } else {
@@ -191,6 +201,14 @@ class SettingsController extends Controller
             // Read and execute the SQL file
             $sql = file_get_contents($path);
 
+            // Validate the backup file format before execution
+            if (!$this->isValidBackupFile($sql)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid backup file format. File has been tampered with.'
+                ], 400);
+            }
+
             // Split the SQL into statements
             $statements = array_filter(
                 array_map('trim', explode(";\n", $sql)),
@@ -199,7 +217,15 @@ class SettingsController extends Controller
 
             foreach ($statements as $statement) {
                 if (trim($statement) !== '') {
-                    DB::unprepared($statement . ';');
+                    // Validate each SQL statement before execution
+                    if ($this->isAllowedSqlStatement($statement)) {
+                        DB::unprepared($statement . ';');
+                    } else {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Backup file contains prohibited SQL statements.'
+                        ], 400);
+                    }
                 }
             }
 
@@ -276,5 +302,88 @@ class SettingsController extends Controller
         }
 
         return $tableNames;
+    }
+
+    /**
+     * Validate if the backup file is in expected format
+     */
+    private function isValidBackupFile($sql)
+    {
+        // Check if the file starts with the expected backup comment
+        if (!str_starts_with($sql, '-- Database Backup Generated on')) {
+            return false;
+        }
+
+        // Check for known malicious patterns
+        $forbiddenPatterns = [
+            '/DROP\s+DATABASE/i',
+            '/CREATE\s+DATABASE/i',
+            '/ALTER\s+DATABASE/i',
+            '/DROP\s+USER/i',
+            '/CREATE\s+USER/i',
+            '/GRANT\s+/i',
+            '/REVOKE\s+/i',
+            '/LOAD_FILE/i',
+            '/OUTFILE/i',
+            '/SLEEP/i',
+            '/BENCHMARK/i',
+            '/EXEC/i',
+            '/XP_/i', // SQL Server procedures
+        ];
+
+        foreach ($forbiddenPatterns as $pattern) {
+            if (preg_match($pattern, $sql)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the SQL statement is allowed for execution
+     */
+    private function isAllowedSqlStatement($statement)
+    {
+        // List of allowed SQL operations in a backup
+        $allowedOperations = [
+            'CREATE TABLE',
+            'INSERT INTO',
+            'DROP TABLE',
+            'ALTER TABLE',
+        ];
+
+        $statement = trim(strtoupper($statement));
+
+        foreach ($allowedOperations as $operation) {
+            if (str_starts_with($statement, $operation)) {
+                return true;
+            }
+        }
+
+        // Additional check for potentially dangerous operations
+        $forbiddenOperations = [
+            'DROP DATABASE',
+            'CREATE DATABASE',
+            'ALTER DATABASE',
+            'DROP USER',
+            'CREATE USER',
+            'GRANT',
+            'REVOKE',
+            'LOAD_FILE',
+            'OUTFILE',
+            'SLEEP',
+            'BENCHMARK',
+            'EXEC',
+            'XP_',
+        ];
+
+        foreach ($forbiddenOperations as $operation) {
+            if (str_contains($statement, $operation)) {
+                return false;
+            }
+        }
+
+        return true; // By default, allow if not explicitly forbidden and starts with an allowed operation
     }
 }

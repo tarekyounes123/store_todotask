@@ -121,37 +121,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/site-settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'update'])->name('site-settings.update');
 });
 
-// API routes for notifications
+// API routes for notifications - ensure JSON responses even for auth issues
 Route::get('/api/check-new-orders', function () {
     if (!auth()->check() || !auth()->user()->isAdmin()) {
         return response()->json(['error' => 'Unauthorized'], 401);
     }
 
-    // Get orders created after the last check time (for demo purposes, we'll get all recent)
-    // In a real implementation, we would track the last checked time
-
-    // For demo, let's get all unread notifications for admin users
-    $notifications = \App\Models\OrderNotification::where('read', false)
-        ->orderBy('created_at', 'desc')
-        ->take(5)  // Limit to last 5
-        ->get();
-
-    // Mark them as read after returning them
-    $notifications->each(function($notification) {
-        $notification->update(['read' => true, 'read_at' => now()]);
-    });
-
-    return response()->json([
-        'new_orders' => $notifications->map(function($notification) {
-            return [
-                'id' => $notification->id,
-                'order_number' => $notification->order->order_number ?? 'unknown',
-                'total' => $notification->order->total ?? 0,
-                'message' => $notification->message
-            ];
-        }),
-        'count' => $notifications->count()
-    ]);
-});
+    // Delegate to controller method to avoid code duplication
+    $controller = new \App\Http\Controllers\Api\OrderNotificationController();
+    return $controller->checkNewOrders(request());
+})->name('api.check-new-orders');
 
 require __DIR__.'/auth.php';

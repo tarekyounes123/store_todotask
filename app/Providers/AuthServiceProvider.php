@@ -13,6 +13,9 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         \App\Models\Task::class => \App\Policies\TaskPolicy::class,
+        \App\Models\Chat::class => \App\Policies\ChatPolicy::class,
+        \App\Models\Message::class => \App\Policies\MessagePolicy::class,
+        \App\Models\ChatAttachment::class => \App\Policies\ChatAttachmentPolicy::class,
     ];
 
     /**

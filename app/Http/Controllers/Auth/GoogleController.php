@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
@@ -43,7 +44,7 @@ class GoogleController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'email_verified_at' => now(), // Google verified emails are trusted
-                    'password' => Hash::make('password'), // Generate a random password using Laravel's Hash facade
+                    'password' => Hash::make(Str::random(16)), // Generate a random secure password
                     'profile_picture' => $user->avatar,
                 ]);
 

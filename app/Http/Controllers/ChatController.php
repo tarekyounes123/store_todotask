@@ -72,8 +72,8 @@ class ChatController extends Controller
      */
     public function show(Chat $chat): View
     {
-        // Ensure the authenticated user is a participant of the chat
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the chat
+        $this->authorize('view', $chat);
 
         $messages = $chat->messages()->with('user')->get();
         return view('chat.show', compact('chat', 'messages'));
@@ -84,12 +84,12 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request, Chat $chat): \Illuminate\Http\JsonResponse
     {
-        // Ensure the authenticated user is a participant of the chat
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the chat
+        $this->authorize('view', $chat);
 
         $request->validate([
             'content' => 'nullable|string|max:1000', // Content can be nullable if only sending attachment
-            'attachment' => 'nullable|file|max:10240', // Max 10MB
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,txt,zip,rar|max:10240', // Max 10MB, restricted file types
         ]);
 
         if (!$request->input('content') && !$request->hasFile('attachment')) {
@@ -103,14 +103,29 @@ class ChatController extends Controller
 
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('public/chat_attachments', $fileName); // Store in storage/app/public/chat_attachments
+
+            // Additional security checks
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            // Double check the file extension and MIME type
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar'];
+            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/zip', 'application/x-rar-compressed'];
+
+            if (!in_array($extension, $allowedExtensions) || !in_array($file->getMimeType(), $allowedMimes)) {
+                return response()->json(['status' => 'error', 'message' => 'File type not allowed.'], 422);
+            }
+
+            // Additional security: verify that the file is actually what it says it is
+            $this->verifyFileIntegrity($file);
+
+            $filePath = $file->storeAs('public/chat_attachments', $fileName); // Store in storage
 
             if ($filePath) {
                 $attachment = $message->attachments()->create([
                     'file_path' => $filePath, // Store the path in storage
                     'file_name' => $fileName,
-                    'file_mime_type' => $file->getClientMimeType(),
+                    'file_mime_type' => $file->getMimeType(), // Use true MIME type from file, not client
                     'file_size' => $file->getSize(),
                 ]);
             } else {
@@ -118,13 +133,13 @@ class ChatController extends Controller
                 \Log::error('Failed to store chat attachment: ' . $fileName, [
                     'original_name' => $file->getClientOriginalName(),
                     'size' => $file->getSize(),
-                    'mime_type' => $file->getClientMimeType()
+                    'mime_type' => $file->getMimeType()
                 ]);
 
                 return response()->json(['status' => 'error', 'message' => 'Failed to upload attachment.'], 500);
             }
         }
-        
+
         // We are disabling broadcasting for now as per user request for polling
         // broadcast(new MessageSent(Auth::user(), $message))->toOthers();
 
@@ -132,12 +147,45 @@ class ChatController extends Controller
     }
 
     /**
+     * Verify file integrity to prevent malicious file uploads
+     */
+    private function verifyFileIntegrity($file)
+    {
+        // Additional file content inspection to prevent malicious uploads
+        $extension = strtolower($file->getClientOriginalExtension());
+        $mimeType = $file->getMimeType();
+
+        // For image files, verify the content matches the extension
+        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+            if (!in_array($mimeType, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])) {
+                throw new \Exception('Invalid image file type.');
+            }
+
+            // Additional check to ensure it's an actual image
+            $imageInfo = getimagesize($file->getRealPath());
+            if (!$imageInfo) {
+                throw new \Exception('Invalid image file.');
+            }
+        }
+
+        // For PDF files, check for common PDF header
+        if ($extension === 'pdf') {
+            $handle = fopen($file->getRealPath(), 'rb');
+            $header = fread($handle, 4);
+            fclose($handle);
+            if ($header !== '%PDF') {
+                throw new \Exception('Invalid PDF file.');
+            }
+        }
+    }
+
+    /**
      * Fetch new messages for a chat.
      */
     public function fetchNewMessages(Request $request, Chat $chat)
     {
-        // Ensure the authenticated user is a participant of the chat
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the chat
+        $this->authorize('view', $chat);
 
         $lastMessageId = $request->input('last_message_id');
 
@@ -155,11 +203,8 @@ class ChatController extends Controller
      */
     public function downloadAttachment(ChatAttachment $attachment)
     {
-        // Check if the authenticated user is part of the chat that contains this attachment
-        $message = $attachment->message;
-        $chat = $message->chat;
-
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the attachment
+        $this->authorize('view', $attachment);
 
         if (!Storage::exists($attachment->file_path)) {
             abort(404, 'File not found.');
@@ -173,11 +218,8 @@ class ChatController extends Controller
      */
     public function showAttachment(ChatAttachment $attachment)
     {
-        // Check if the authenticated user is part of the chat that contains this attachment
-        $message = $attachment->message;
-        $chat = $message->chat;
-
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the attachment
+        $this->authorize('view', $attachment);
 
         if (!Storage::exists($attachment->file_path)) {
             abort(404, 'File not found.');
@@ -196,8 +238,8 @@ class ChatController extends Controller
             'message_ids.*' => 'exists:messages,id,chat_id,' . $chat->id,
         ]);
 
-        // Ensure the authenticated user is a participant of the chat
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the chat
+        $this->authorize('view', $chat);
 
         $messageIds = $request->input('message_ids');
 
@@ -205,6 +247,9 @@ class ChatController extends Controller
         $messages = $chat->messages()->whereIn('id', $messageIds)->get();
 
         foreach ($messages as $message) {
+            // Use policy authorization for each message
+            $this->authorize('delete', $message);
+
             // Delete the message's attachments first
             foreach ($message->attachments as $attachment) {
                 if (Storage::exists($attachment->file_path)) {
@@ -224,13 +269,16 @@ class ChatController extends Controller
      */
     public function clearChat(Request $request, Chat $chat)
     {
-        // Ensure the authenticated user is a participant of the chat
-        abort_unless($chat->users->contains(Auth::id()), 403);
+        // Use policy authorization for the chat
+        $this->authorize('view', $chat);
 
         // Get all messages in the chat to delete their attachments first
         $messages = $chat->messages;
 
         foreach ($messages as $message) {
+            // Use policy authorization for each message
+            $this->authorize('delete', $message);
+
             // Delete the message's attachments first
             foreach ($message->attachments as $attachment) {
                 if (Storage::exists($attachment->file_path)) {
