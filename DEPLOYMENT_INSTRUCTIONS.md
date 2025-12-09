@@ -155,6 +155,11 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - Removed supervisord configuration for web service
    - Web service now uses Laravel's built-in server via `php artisan serve`
 
+11. **Application early exit errors**:
+   - Fixed with entrypoint script that ensures environment is properly configured
+   - Script handles .env creation and app key generation if needed
+   - Configuration is cleared and cached before starting server
+
 ### Debugging
 
 - Check the build logs in the Render dashboard for compilation errors

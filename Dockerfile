@@ -67,7 +67,12 @@ RUN mkdir -p /var/www/public/uploads \
     && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/public/uploads \
     && chmod -R 755 /var/www/storage /var/www/bootstrap/cache /var/www/public/uploads
 
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port (Render will set $PORT environment variable)
 EXPOSE $PORT
 
-# The start command will be php artisan serve --host=0.0.0.0 --port=$PORT (defined in render.yaml)
+# Use entrypoint script
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
