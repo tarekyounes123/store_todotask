@@ -142,6 +142,10 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - If you encounter errors with the `artisan package:discover` command during build, this has been addressed
    - The Dockerfiles now use `--no-scripts` flag during composer install and run artisan commands separately
 
+8. **npm run build errors**:
+   - If you encounter errors with the `npm run build` command during build, this has been addressed
+   - The Dockerfiles now install development dependencies temporarily for building, then install only production dependencies
+
 ### Debugging
 
 - Check the build logs in the Render dashboard for compilation errors
