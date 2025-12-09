@@ -23,8 +23,10 @@ RUN apk update && apk add --no-cache \
     libc-dev \
     $PHPIZE_DEPS
 
-# Install PHP extensions and Redis
-RUN docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath \
+# Install PHP extensions individually to avoid tokenizer issue
+RUN docker-php-ext-install pdo pdo_mysql mbstring xml ctype exif pcntl bcmath \
+    && docker-php-ext-configure tokenizer \
+    && docker-php-ext-install tokenizer \
     && pecl install redis \
     && docker-php-ext-enable redis
 

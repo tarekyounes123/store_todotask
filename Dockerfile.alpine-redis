@@ -23,8 +23,10 @@ RUN apk update && apk add --no-cache \
     php82-redis \
     $PHPIZE_DEPS
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath
+# Install PHP extensions individually to avoid tokenizer issue
+RUN docker-php-ext-install pdo pdo_mysql mbstring xml ctype exif pcntl bcmath \
+    && docker-php-ext-configure tokenizer \
+    && docker-php-ext-install tokenizer
 
 # Set working directory
 WORKDIR /var/www
