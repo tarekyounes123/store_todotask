@@ -148,8 +148,12 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
 
 9. **Laravel queue worker errors**:
    - For production on Render, the queue worker runs in a separate worker service as defined in render.yaml
-   - The supervisord configuration only runs PHP-FPM for the web service
    - Basic .env file is created from .env.example and application key is generated during build
+
+10. **HTTP port detection errors**:
+   - Fixed by using PHP CLI image instead of PHP FPM
+   - Removed supervisord configuration for web service
+   - Web service now uses Laravel's built-in server via `php artisan serve`
 
 ### Debugging
 

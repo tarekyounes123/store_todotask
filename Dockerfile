@@ -1,5 +1,5 @@
 # Base image
-FROM php:8.2-fpm-alpine
+FROM php:8.2-cli-alpine
 
 # Install system dependencies
 RUN apk update && apk add --no-cache \
@@ -11,7 +11,6 @@ RUN apk update && apk add --no-cache \
     unzip \
     nodejs-lts \
     npm \
-    supervisor \
     bash \
     oniguruma-dev \
     libpng-dev \
@@ -68,11 +67,7 @@ RUN mkdir -p /var/www/public/uploads \
     && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/public/uploads \
     && chmod -R 755 /var/www/storage /var/www/bootstrap/cache /var/www/public/uploads
 
-# Copy Supervisor config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Expose port (Render will set $PORT environment variable)
+EXPOSE $PORT
 
-# Expose PHP-FPM port
-EXPOSE 9000
-
-# Start Supervisor (runs PHP-FPM only for web service)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# The start command will be php artisan serve --host=0.0.0.0 --port=$PORT (defined in render.yaml)
