@@ -1,0 +1,118 @@
+services:
+# Web service
+- type: web
+  name: laravel-app
+  runtime: php
+  plan: free
+  buildCommand: |
+    set -ex
+    composer install --no-dev --optimize-autoloader
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    npm ci
+    npm run build
+  startCommand: "php artisan serve --host=0.0.0.0 --port=$PORT"
+  envVars:
+    - key: APP_ENV
+      value: production
+    - key: APP_DEBUG
+      value: false
+    - key: APP_URL
+      sync: false
+    - key: DB_CONNECTION
+      value: mysql
+    - key: DB_HOST
+      fromDatabase:
+        name: laravel-db
+        property: host
+    - key: DB_PORT
+      fromDatabase:
+        name: laravel-db
+        property: port
+    - key: DB_DATABASE
+      fromDatabase:
+        name: laravel-db
+        property: database
+    - key: DB_USERNAME
+      fromDatabase:
+        name: laravel-db
+        property: username
+    - key: DB_PASSWORD
+      fromDatabase:
+        name: laravel-db
+        property: password
+    - key: REDIS_URL
+      fromService:
+        name: laravel-redis
+        property: connectionString
+    - key: APP_KEY
+      generateValue: true
+  autoDeploy: true
+
+# Database service
+- type: pserv
+  name: laravel-db
+  runtime: mysql
+  plan: free
+  envVars:
+    - key: MYSQL_ROOT_PASSWORD
+      generateValue: true
+    - key: MYSQL_DATABASE
+      value: laravel
+    - key: MYSQL_USER
+      value: laravel
+    - key: MYSQL_PASSWORD
+      generateValue: true
+
+# Redis service
+- type: pserv
+  name: laravel-redis
+  runtime: redis
+  plan: free
+
+# Background worker for queues
+- type: worker
+  name: laravel-worker
+  runtime: php
+  plan: free
+  buildCommand: |
+    set -ex
+    composer install --no-dev --optimize-autoloader
+  startCommand: "php artisan queue:work --tries=3"
+  envVars:
+    - key: APP_ENV
+      value: production
+    - key: APP_DEBUG
+      value: false
+    - key: APP_URL
+      sync: false
+    - key: DB_CONNECTION
+      value: mysql
+    - key: DB_HOST
+      fromDatabase:
+        name: laravel-db
+        property: host
+    - key: DB_PORT
+      fromDatabase:
+        name: laravel-db
+        property: port
+    - key: DB_DATABASE
+      fromDatabase:
+        name: laravel-db
+        property: database
+    - key: DB_USERNAME
+      fromDatabase:
+        name: laravel-db
+        property: username
+    - key: DB_PASSWORD
+      fromDatabase:
+        name: laravel-db
+        property: password
+    - key: REDIS_URL
+      fromService:
+        name: laravel-redis
+        property: connectionString
+    - key: APP_KEY
+      generateValue: true
+  autoDeploy: true
