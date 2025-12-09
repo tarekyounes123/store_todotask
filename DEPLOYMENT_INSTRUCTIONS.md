@@ -160,6 +160,12 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - Script handles .env creation and app key generation if needed
    - Configuration is cleared and cached before starting server
 
+12. **Database migrations on Render free plan**:
+   - Using external MySQL database with environment variables
+   - To run migrations, set RUN_MIGRATIONS=true as an environment variable
+   - To run seeds, set RUN_SEEDS=true as an environment variable
+   - For first deployment, deploy without migrations, then run with RUN_MIGRATIONS=true
+
 ### Debugging
 
 - Check the build logs in the Render dashboard for compilation errors

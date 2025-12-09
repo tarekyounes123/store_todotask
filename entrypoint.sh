@@ -132,6 +132,23 @@ fi
 # Cache configuration again after environment updates
 php artisan config:cache 2>/dev/null || echo "Config cache failed"
 
+# Run database migrations if application is ready
+echo "Checking if migrations should run..."
+if [ "$RUN_MIGRATIONS" = "true" ]; then
+    echo "Running database migrations..."
+    php artisan migrate --force
+else
+    echo "Skipping migrations (set RUN_MIGRATIONS=true to run migrations)"
+fi
+
+# Seed the database if requested
+if [ "$RUN_SEEDS" = "true" ]; then
+    echo "Running database seeds..."
+    php artisan db:seed --force
+else
+    echo "Skipping seeds (set RUN_SEEDS=true to run seeds)"
+fi
+
 # Run Laravel serve command
 echo "Starting Laravel server on port $PORT..."
 exec php artisan serve --host=0.0.0.0 --port=$PORT
