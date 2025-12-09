@@ -14,8 +14,13 @@ use App\Http\Controllers\FavoriteController; // Import FavoriteController
 use App\Http\Controllers\Admin\StockManagementController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
+
+// Contact form routes
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.submit');
 
 // Public product routes
 Route::get('/products', [PublicProductController::class, 'index'])->name('products.index');

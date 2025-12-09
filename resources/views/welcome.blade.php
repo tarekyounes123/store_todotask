@@ -748,6 +748,127 @@
         @endforeach
     @endif
 
+    <style>
+        .bg-primary-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+        }
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-gradient:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        @media (max-width: 767.98px) {
+            .row.g-0 {
+                flex-direction: column;
+            }
+            .col-md-6 {
+                flex: 1 0 100%;
+            }
+            .bg-primary-gradient {
+                min-height: 250px;
+            }
+            .contact-info-list .d-flex {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .contact-info-list .d-flex .me-3 {
+                margin-right: 0.75rem;
+            }
+        }
+    </style>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="fw-bold" style="color: var(--primary-color);">Contact Us</h2>
+                    <p class="text-muted">Have questions? Our team is here to help!</p>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                        <div class="row g-0">
+                            <div class="col-md-6 bg-primary-gradient" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; min-height: 400px;">
+                                <div class="p-5 h-100 d-flex flex-column justify-content-center text-white">
+                                    <h3 class="mb-4 fw-bold">Get in Touch</h3>
+                                    <p class="mb-4 opacity-75">We value your feedback and inquiries. Fill out the form and our team will get back to you as soon as possible.</p>
+
+                                    <div class="mt-auto">
+                                        <i class="bi bi-envelope-open fs-1 opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-5">
+                                    <h3 class="mb-4">Send us a Message</h3>
+
+                                    <form method="POST" action="{{ route('contact.submit') }}">
+                                        @csrf
+                                        <div class="mb-4">
+                                            <label for="name" class="form-label fw-medium">Full Name</label>
+                                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                                            @error('name')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="email" class="form-label fw-medium">Email Address</label>
+                                            <input type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required>
+                                            @error('email')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="subject" class="form-label fw-medium">Subject</label>
+                                            <input type="text" class="form-control form-control-lg @error('subject') is-invalid @enderror" id="subject" name="subject" value="{{ old('subject') }}" required>
+                                            @error('subject')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="message" class="form-label fw-medium">Message</label>
+                                            <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="5" required>{{ old('message') }}</textarea>
+                                            @error('message')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary-gradient btn-lg">
+                                                <i class="bi bi-send me-2"></i> Send Message
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer - Dynamic (Site Settings) or Static -->
     @if(isset($siteSettings) && $siteSettings)
         <!-- Site Settings Based Footer -->
@@ -779,7 +900,11 @@
                         <h5>Company</h5>
                         <div class="footer-links">
                             @foreach($siteSettings->setting_value['company_links'] ?? [] as $link)
-                                <a href="{{ $link['url'] ?? '#' }}">{{ $link['name'] ?? 'Link' }}</a><br>
+                                @if($link['name'] === 'Contact')
+                                    <a href="#contact">{{ $link['name'] ?? 'Link' }}</a><br>
+                                @else
+                                    <a href="{{ $link['url'] ?? '#' }}">{{ $link['name'] ?? 'Link' }}</a><br>
+                                @endif
                             @endforeach
                         </div>
                     </div>
@@ -838,7 +963,7 @@
                         <h5>Company</h5>
                         <div class="footer-links">
                             <a href="#">About Us</a>
-                            <a href="#">Contact</a>
+                            <a href="#contact">Contact</a>
                             <a href="#">Careers</a>
                             <a href="#">Blog</a>
                             <a href="#">Press</a>
