@@ -1,7 +1,7 @@
 # Base image
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies and Node.js
+# Install system dependencies
 RUN apk update && apk add --no-cache \
     postgresql-dev \
     sqlite-dev \
@@ -11,23 +11,21 @@ RUN apk update && apk add --no-cache \
     unzip \
     nodejs-lts \
     npm \
-    supervisor
+    supervisor \
+    bash \
+    oniguruma-dev \
+    libpng-dev \
+    libxml2-dev \
+    linux-headers \
+    autoconf \
+    g++ \
+    make \
+    libc-dev \
+    $PHPIZE_DEPS
 
-# Install build dependencies, PHP extensions, and Redis
-RUN apk add --no-cache --virtual .build-deps \
-        autoconf \
-        g++ \
-        make \
-        libc-dev \
-        bash \
-        $PHPIZE_DEPS \
-        oniguruma-dev \
-        libpng-dev \
-        libxml2-dev \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath \
-    && apk del .build-deps
+# Install PHP extensions and Redis
+RUN pecl install redis && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath
 
 # Set working directory
 WORKDIR /var/www
@@ -42,7 +40,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Install Laravel PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Copy application files
+# Copy remaining application files
 COPY . .
 
 # Copy package.json and install Node.js dependencies
