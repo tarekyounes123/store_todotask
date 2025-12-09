@@ -18,10 +18,11 @@ RUN apk update && apk add --no-cache \
     $PHPIZE_DEPS
 
 # Install PHP extensions and Redis
-RUN pecl install redis \
+RUN apk add --no-cache --virtual .build-deps autoconf g++ make \
+    && pecl install redis \
     && docker-php-ext-enable redis \
     && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath \
-    && apk del $PHPIZE_DEPS
+    && apk del .build-deps
 
 # Set working directory
 WORKDIR /var/www
