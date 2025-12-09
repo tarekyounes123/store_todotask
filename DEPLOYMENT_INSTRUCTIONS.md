@@ -134,6 +134,10 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - If you encounter errors during the Redis PECL installation, try using the alternative Dockerfile (`Dockerfile.alpine-redis`)
    - The alternative Dockerfile uses the Redis extension from Alpine's package repository instead of PECL
 
+6. **Tokenizer extension build errors**:
+   - If you encounter errors related to the tokenizer extension during build, this has been addressed in the updated Dockerfiles
+   - The tokenizer extension is built-in to PHP and doesn't need explicit installation
+
 ### Debugging
 
 - Check the build logs in the Render dashboard for compilation errors
