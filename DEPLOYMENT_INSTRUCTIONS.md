@@ -13,7 +13,7 @@
 Make sure your repository contains all necessary files:
 
 - `render.yaml` - Render service configuration
-- `Dockerfile` - Container configuration
+- `Dockerfile` - Container configuration (or `Dockerfile.alpine-redis` if you encounter PECL errors)
 - `nginx.conf` - Web server configuration
 - `supervisord.conf` - Process manager configuration
 - `.env.example.production` - Production environment variables
@@ -76,7 +76,7 @@ After the first successful deployment, you'll need to run database migrations:
 1. Go to your Render dashboard
 2. Select your web service
 3. Click on "Dashboard" tab
-4. Click on "Manual Deploy" 
+4. Click on "Manual Deploy"
 5. Select "Deploy with command" and enter:
    ```
    php artisan migrate --force
@@ -129,6 +129,10 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
 4. **Asset loading issues**:
    - Make sure to run `npm run build` during the build process
    - Verify your asset URLs are correct for the production environment
+
+5. **PECL Redis installation errors**:
+   - If you encounter errors during the Redis PECL installation, try using the alternative Dockerfile (`Dockerfile.alpine-redis`)
+   - The alternative Dockerfile uses the Redis extension from Alpine's package repository instead of PECL
 
 ### Debugging
 

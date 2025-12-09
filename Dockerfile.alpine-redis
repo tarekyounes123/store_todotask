@@ -1,7 +1,6 @@
-# Base image
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apk update && apk add --no-cache \
     postgresql-dev \
     sqlite-dev \
@@ -21,12 +20,11 @@ RUN apk update && apk add --no-cache \
     g++ \
     make \
     libc-dev \
+    php82-redis \
     $PHPIZE_DEPS
 
-# Install PHP extensions and Redis
-RUN docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath
 
 # Set working directory
 WORKDIR /var/www
