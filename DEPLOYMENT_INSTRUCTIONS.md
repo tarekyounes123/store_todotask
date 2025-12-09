@@ -138,6 +138,10 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - If you encounter errors related to the tokenizer extension during build, this has been addressed in the updated Dockerfiles
    - The tokenizer extension is built-in to PHP and doesn't need explicit installation
 
+7. **Laravel package:discover errors**:
+   - If you encounter errors with the `artisan package:discover` command during build, this has been addressed
+   - The Dockerfiles now use `--no-scripts` flag during composer install and run artisan commands separately
+
 ### Debugging
 
 - Check the build logs in the Render dashboard for compilation errors

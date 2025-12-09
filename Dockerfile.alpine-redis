@@ -36,11 +36,16 @@ COPY composer.json composer.lock ./
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/bin --filename=composer
 
-# Install Laravel PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install Laravel PHP dependencies with post-autoload-dump scripts disabled
+ENV COMPOSER_DISABLE_XDEBUG_WARN=1
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Copy remaining application files
 COPY . .
+
+# Run Laravel artisan commands after files are copied
+RUN php artisan config:clear 2>/dev/null || true
+RUN php artisan cache:clear 2>/dev/null || true
 
 # Copy package.json and install Node.js dependencies
 COPY package*.json ./
