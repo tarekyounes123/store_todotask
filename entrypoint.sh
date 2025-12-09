@@ -54,6 +54,16 @@ fi
 if [ ! -z "$APP_KEY" ]; then
     sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
 fi
+if [ ! -z "$DB_CONNECTION" ]; then
+    sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=$DB_CONNECTION|" .env
+    echo "DB_CONNECTION set to: $DB_CONNECTION"
+else
+    # Default to mysql if DB_HOST is provided
+    if [ ! -z "$DB_HOST" ]; then
+        sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
+        echo "DB_CONNECTION set to: mysql (default)"
+    fi
+fi
 if [ ! -z "$DB_HOST" ]; then
     sed -i "s|^DB_HOST=.*|DB_HOST=$DB_HOST|" .env
     echo "DB_HOST set to: $DB_HOST"
@@ -83,6 +93,16 @@ fi
 if [ ! -z "$APP_URL" ]; then
     sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
     echo "APP_URL set to: $APP_URL"
+fi
+
+# Ensure cache and session drivers are set appropriately
+if [ ! -z "$REDIS_URL" ]; then
+    sed -i "s|^CACHE_DRIVER=.*|CACHE_DRIVER=redis|" .env
+    sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=redis|" .env
+    sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=redis|" .env
+    echo "Cache, queue and session drivers set to redis"
+else
+    echo "Redis URL not provided, cache and session may use default drivers"
 fi
 
 # Check for APP_KEY, generate if missing
