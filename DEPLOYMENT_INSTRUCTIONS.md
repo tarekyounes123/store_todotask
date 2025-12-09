@@ -150,6 +150,7 @@ If you're using the Redis service defined in `render.yaml`, your Redis instance 
    - Queue worker is configured in both supervisord (for local development) and as a separate service in Render
    - For production on Render, the queue worker runs in a separate worker service as defined in render.yaml
    - A 10-second delay has been added before starting the worker to allow the environment to be ready
+   - Basic .env file is created from .env.example and application key is generated during build
 
 ### Debugging
 

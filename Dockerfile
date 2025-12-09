@@ -49,6 +49,10 @@ COPY . .
 RUN php artisan config:clear 2>/dev/null || true
 RUN php artisan cache:clear 2>/dev/null || true
 
+# Create basic .env if it doesn't exist and generate application key
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+RUN php artisan key:generate --force 2>/dev/null || true
+
 # Copy package.json and install Node.js dependencies
 COPY package*.json ./
 RUN npm ci --only=development
