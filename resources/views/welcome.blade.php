@@ -875,7 +875,7 @@
         <footer class="footer">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-4 mb-5 mb-lg-0">
+                    <div class="col-12 col-sm-6 col-lg-4 mb-4 mb-lg-0">
                         <h5>{{ $siteSettings->setting_value['company_info']['name'] ?? config('app.name', 'Laravel') }}</h5>
                         <p>{{ $siteSettings->setting_value['company_info']['description'] ?? 'Your premier destination for quality products at unbeatable prices.' }}</p>
                         <div class="social-icons mt-4">
@@ -887,7 +887,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <div class="col-6 col-sm-3 col-lg-2 mb-4 mb-lg-0">
                         <h5>Shop</h5>
                         <div class="footer-links">
                             @foreach($siteSettings->setting_value['shop_links'] ?? [] as $link)
@@ -896,7 +896,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <div class="col-6 col-sm-3 col-lg-2 mb-4 mb-lg-0">
                         <h5>Company</h5>
                         <div class="footer-links">
                             @foreach($siteSettings->setting_value['company_links'] ?? [] as $link)
@@ -909,7 +909,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <h5>Contact Info</h5>
                         <div class="footer-links">
                             <p><i class="bi bi-geo-alt me-2"></i> {{ $siteSettings->setting_value['company_info']['address'] ?? '123 Commerce St' }}</p>
@@ -929,7 +929,7 @@
         <footer class="footer">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-4 mb-5 mb-lg-0">
+                    <div class="col-12 col-sm-6 col-lg-4 mb-4 mb-lg-0">
                         <h5>{{ config('app.name', 'Laravel') }}</h5>
                         <p>Your premier destination for quality products at unbeatable prices. We're committed to providing excellent customer service and the best shopping experience.</p>
                         <div class="social-icons mt-4">
@@ -948,7 +948,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <div class="col-6 col-sm-3 col-lg-2 mb-4 mb-lg-0">
                         <h5>Shop</h5>
                         <div class="footer-links">
                             <a href="{{ route('products.index') }}">All Products</a>
@@ -959,7 +959,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <div class="col-6 col-sm-3 col-lg-2 mb-4 mb-lg-0">
                         <h5>Company</h5>
                         <div class="footer-links">
                             <a href="#">About Us</a>
@@ -970,7 +970,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <h5>Contact Info</h5>
                         <div class="footer-links">
                             <p><i class="bi bi-geo-alt me-2"></i> 123 Commerce Street, City, State 12345</p>
