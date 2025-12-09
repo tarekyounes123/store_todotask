@@ -7,18 +7,23 @@ RUN apk update && apk add --no-cache \
     sqlite-dev \
     curl \
     git \
-    libpng-dev \
-    oniguruma-dev \
-    libxml2-dev \
     zip \
     unzip \
     nodejs-lts \
     npm \
-    supervisor \
-    $PHPIZE_DEPS
+    supervisor
 
-# Install PHP extensions and Redis
-RUN apk add --no-cache --virtual .build-deps autoconf g++ make \
+# Install build dependencies, PHP extensions, and Redis
+RUN apk add --no-cache --virtual .build-deps \
+        autoconf \
+        g++ \
+        make \
+        libc-dev \
+        bash \
+        $PHPIZE_DEPS \
+        oniguruma-dev \
+        libpng-dev \
+        libxml2-dev \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && docker-php-ext-install pdo pdo_mysql mbstring tokenizer xml ctype exif pcntl bcmath \
@@ -37,7 +42,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Install Laravel PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Copy remaining application files
+# Copy application files
 COPY . .
 
 # Copy package.json and install Node.js dependencies
