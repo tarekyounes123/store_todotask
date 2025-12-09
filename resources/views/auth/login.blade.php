@@ -25,6 +25,12 @@
                         </div>
                     @endif
 
+                    @error('email')
+                        <div class="alert alert-danger mb-4">
+                            {{ $message }}
+                        </div>
+                    @enderror
+
                     <div class="mb-4">
                         <label for="email" class="form-label fw-medium">{{ __('Email Address') }}</label>
                         <div class="input-group">

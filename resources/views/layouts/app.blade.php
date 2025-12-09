@@ -345,11 +345,20 @@
                 </div>
             @endif
 
-            @if($errors->any())
+           @if($errors->any())
+
+            @php
+                // Filter out the login credential message
+                $filtered = collect($errors->all())->filter(function($error) {
+                    return $error !== 'These credentials do not match our records.';
+                });
+            @endphp
+
+            @if($filtered->count() > 0)
                 <div class="container mt-3">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <ul class="mb-0">
-                            @foreach($errors->all() as $error)
+                            @foreach($filtered as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
@@ -357,6 +366,8 @@
                     </div>
                 </div>
             @endif
+
+        @endif
 
             @yield('content')
         </div>
