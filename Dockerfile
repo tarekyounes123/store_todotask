@@ -8,7 +8,7 @@ RUN apk update && apk add --no-cache \
     curl \
     git \
     libpng-dev \
-    libonig-dev \
+    oniguruma-dev \
     libxml2-dev \
     zip \
     unzip \
@@ -26,7 +26,7 @@ RUN pecl install redis \
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files first for caching
+# Copy composer files first to leverage Docker cache
 COPY composer.json composer.lock ./
 
 # Install Composer
@@ -36,7 +36,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Install Laravel PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Copy application files
+# Copy remaining application files
 COPY . .
 
 # Copy package.json and install Node.js dependencies
