@@ -72,5 +72,5 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose PHP-FPM port
 EXPOSE 9000
 
-# Start Supervisor
+# Start Supervisor (runs PHP-FPM only for web service)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
