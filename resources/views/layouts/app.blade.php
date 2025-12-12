@@ -366,7 +366,6 @@
                     </div>
                 </div>
             @endif
-
         @endif
 
             @yield('content')

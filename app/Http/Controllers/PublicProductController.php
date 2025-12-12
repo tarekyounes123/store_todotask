@@ -68,7 +68,7 @@ class PublicProductController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString(); // Keep query string for pagination
-        $categories = Category::all();
+        $categories = Category::orderBy('name')->get(); // Order categories and ensure they exist
 
         if ($request->ajax()) {
             return view('products._product_list', compact('products'));
