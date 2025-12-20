@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -37,53 +38,59 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Find the user
-        $user = User::where('email', $request->email)->first();
+        // Use a database transaction to prevent race conditions
+        $result = DB::transaction(function () use ($request) {
+            $tokenRecord = PasswordResetToken::where('email', $request->email)->first();
 
-        if (!$user) {
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'We can\'t find a user with that email address.']);
+            // If no token exists, return early but still simulate processing time to prevent timing attacks
+            if (!$tokenRecord) {
+                return ['success' => false, 'message' => 'If the information was valid, your password has been reset.'];
+            }
+
+            // Check if the token has already been used
+            if ($tokenRecord->isUsed()) {
+                return ['success' => false, 'message' => 'If the information was valid, your password has been reset.'];
+            }
+
+            // Check if token is expired
+            if ($tokenRecord->isExpired()) {
+                // Clean up expired token
+                $tokenRecord->delete();
+                return ['success' => false, 'message' => 'If the information was valid, your password has been reset.'];
+            }
+
+            // Verify that the token matches (comparing the hash)
+            $hashedToken = hash('sha256', $request->token);
+            if ($tokenRecord->token !== $hashedToken) {
+                return ['success' => false, 'message' => 'If the information was valid, your password has been reset.'];
+            }
+
+            // Find and update the user's password
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return ['success' => false, 'message' => 'If the information was valid, your password has been reset.'];
+            }
+
+            // Update the user's password
+            $user->password = Hash::make($request->password);
+            $user->remember_token = Str::random(60);
+            $user->save();
+
+            event(new PasswordReset($user));
+
+            // Mark the token as used after successful password reset
+            $tokenRecord->markAsUsed();
+
+            return ['success' => true, 'message' => 'Your password has been reset successfully!'];
+        });
+
+        // Simulate processing time to prevent timing attacks
+        usleep(random_int(100000, 500000));
+
+        if ($result['success']) {
+            return redirect()->route('login')->with('status', $result['message']);
+        } else {
+            return redirect()->route('password.request')->withErrors(['email' => $result['message']]);
         }
-
-        // Check if the token exists and is valid
-        $tokenRecord = PasswordResetToken::where('email', $request->email)->first();
-
-        if (!$tokenRecord) {
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'This password reset token is invalid.']);
-        }
-
-        // Check if the token has already been used
-        if ($tokenRecord->isUsed()) {
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'This link already been used.']);
-        }
-
-        // Check if token is expired
-        if ($tokenRecord->isExpired()) {
-            // Clean up expired token
-            $tokenRecord->delete();
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'This password reset token has expired.']);
-        }
-
-        // Verify that the token matches (comparing the hash)
-        $hashedToken = hash('sha256', $request->token);
-        if ($tokenRecord->token !== $hashedToken) {
-            return back()->withInput($request->only('email'))
-                ->withErrors(['email' => 'This password reset token is invalid.']);
-        }
-
-        // Update the user's password
-        $user->password = Hash::make($request->password);
-        $user->remember_token = Str::random(60);
-        $user->save();
-
-        event(new PasswordReset($user));
-
-        // Mark the token as used after successful password reset
-        $tokenRecord->markAsUsed();
-
-        return redirect()->route('login')->with('status', 'Your password has been reset!');
     }
 }

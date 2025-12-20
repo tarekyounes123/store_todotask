@@ -5,9 +5,11 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -41,15 +43,48 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $user = User::where('email', $this->input('email'))->first();
+
+        // Perform credential check to maintain timing consistency
+        $validCredentials = $user &&
+                           Hash::check($this->input('password'), $user->password ?? '') &&
+                           $this->isAccountActive($user);
+
+        if (!$validCredentials) {
             RateLimiter::hit($this->throttleKey());
 
+            // Sleep to maintain consistent response time and prevent timing attacks
+            usleep(random_int(100000, 300000));
+
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => __('auth.failed'),
             ]);
         }
 
+        // Successful authentication
+        Auth::login($user, $this->boolean('remember'));
         RateLimiter::clear($this->throttleKey());
+
+        // Update last login timestamp
+        $user->update(['last_login_at' => now()]);
+    }
+
+    /**
+     * Check if the user account is active and can be logged into
+     */
+    private function isAccountActive($user): bool
+    {
+        // Check if account is disabled
+        if ($user->status === 'disabled' || $user->status === 'inactive') {
+            return false;
+        }
+
+        // Check if account is suspended
+        if ($user->suspended_until && $user->suspended_until->isFuture()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -66,6 +101,9 @@ class LoginRequest extends FormRequest
         event(new Lockout($this));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+
+        // Sleep to maintain consistent timing
+        usleep(random_int(100000, 300000));
 
         throw ValidationException::withMessages([
             'email' => trans('auth.throttle', [

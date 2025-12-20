@@ -37,6 +37,14 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('verification.notice');
         }
 
+        // Additional check for account status (in case it was changed between authentication and now)
+        if ($user && (!$user->isActive() || $user->isSuspended())) {
+            Auth::logout();
+            return redirect('/login')->withErrors([
+                'email' => 'Your account is currently suspended or disabled. Please contact support.'
+            ]);
+        }
+
         // Always redirect to dashboard after login, regardless of previous page
         return redirect()->route('dashboard');
     }
@@ -48,7 +56,7 @@ class AuthenticatedSessionController extends Controller
     {
         if (Auth::check()) {
             Auth::user()->forceFill([
-                'last_seen' => null,
+                'last_seen' => now(),
             ])->save();
         }
 

@@ -40,7 +40,11 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         'password',
         'email_verified_at',
         'last_seen',
+        'last_login_at',
         'role',
+        'status',
+        'suspended_until',
+        'google_id',
         'phone_number',
         'address',
         'city',
@@ -71,6 +75,8 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_seen' => 'datetime',
+            'last_login_at' => 'datetime',
+            'suspended_until' => 'datetime',
         ];
     }
 
@@ -89,6 +95,31 @@ class User extends Authenticatable implements MustVerifyEmail, CanResetPassword
         );
 
         $this->notify(new CustomPasswordResetNotification($token));
+    }
+
+    /**
+     * Check if the user account is active
+     */
+    public function isActive(): bool
+    {
+        return $this->status !== 'disabled' && $this->status !== 'inactive' &&
+               (!$this->suspended_until || $this->suspended_until->isPast());
+    }
+
+    /**
+     * Check if the user account is suspended
+     */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_until && $this->suspended_until->isFuture();
+    }
+
+    /**
+     * Check if the user account is disabled
+     */
+    public function isDisabled(): bool
+    {
+        return $this->status === 'disabled' || $this->status === 'inactive';
     }
 
     /**

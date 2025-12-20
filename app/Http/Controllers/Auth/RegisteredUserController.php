@@ -45,8 +45,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
+        // The Registered event automatically sends the verification email for users
+        // that implement MustVerifyEmail, so we don't need to manually send it again
 
         Auth::login($user);
 
