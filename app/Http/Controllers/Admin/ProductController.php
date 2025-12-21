@@ -6,12 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\Products\Attribute; // Import the Attribute model
+use App\Http\Requests\ProductRequest; // Import the ProductRequest
+use App\Services\ProductVariantService; // Import the ProductVariantService
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str; // Added Str facade
 
 class ProductController extends Controller
 {
+    protected $productVariantService;
+
+    public function __construct(ProductVariantService $productVariantService)
+    {
+        $this->productVariantService = $productVariantService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -27,37 +37,29 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('admin.products.create', compact('categories'));
+        $attributes = Attribute::with('terms')->get(); // Fetch all global attributes
+        return view('admin.products.create', compact('categories', 'attributes'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request) // Use ProductRequest for validation
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric',
-            'buy_price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+        $validatedData = $request->validated();
 
         $product = Product::create([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name), // Generate slug
-            'description' => $request->description,
-            'price' => $request->price,
-            'buy_price' => $request->buy_price,
-            'stock_quantity' => $request->stock_quantity,
-            'category_id' => $request->category_id,
+            'name' => $validatedData['name'],
+            'slug' => Str::slug($validatedData['name']),
+            'description' => $validatedData['description'],
+            'price' => $validatedData['price'],
+            'buy_price' => $validatedData['buy_price'],
+            'stock_quantity' => $validatedData['stock_quantity'],
+            'category_id' => $validatedData['category_id'],
         ]);
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // Additional security: verify that the file is actually an image
                 $imageInfo = getimagesize($image->getRealPath());
                 if (!$imageInfo) {
                     return redirect()->back()->withErrors(['images' => 'Invalid image file.'])->withInput();
@@ -74,6 +76,11 @@ class ProductController extends Controller
             }
         }
 
+        // Handle product attributes and variants
+        if (isset($validatedData['attributes']) || isset($validatedData['variants'])) {
+            $this->productVariantService->createOrUpdateVariants($product, $validatedData);
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
@@ -82,7 +89,6 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        // Not typically needed for simple CRUD, can be left empty or redirect
         return redirect()->route('admin.products.index');
     }
 
@@ -92,32 +98,28 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
-        return view('admin.products.edit', compact('product', 'categories'));
+        $attributes = Attribute::with('terms')->get(); // Fetch all global attributes
+        // Load existing product attributes and variants for the form
+        $product->load(['attributes.attribute', 'attributes.terms.attributeTerm', 'variants.terms.attribute']);
+
+        return view('admin.products.edit', compact('product', 'categories', 'attributes'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product) // Use ProductRequest for validation
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric',
-            'buy_price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+        $validatedData = $request->validated();
 
         $product->update([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name), // Update slug
-            'description' => $request->description,
-            'price' => $request->price,
-            'buy_price' => $request->buy_price,
-            'stock_quantity' => $request->stock_quantity,
-            'category_id' => $request->category_id,
+            'name' => $validatedData['name'],
+            'slug' => Str::slug($validatedData['name']),
+            'description' => $validatedData['description'],
+            'price' => $validatedData['price'],
+            'buy_price' => $validatedData['buy_price'],
+            'stock_quantity' => $validatedData['stock_quantity'],
+            'category_id' => $validatedData['category_id'],
         ]);
 
         // Handle image deletions
@@ -133,7 +135,6 @@ class ProductController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // Additional security: verify that the file is actually an image
                 $imageInfo = getimagesize($image->getRealPath());
                 if (!$imageInfo) {
                     return redirect()->back()->withErrors(['images' => 'Invalid image file.'])->withInput();
@@ -150,6 +151,15 @@ class ProductController extends Controller
             }
         }
 
+        // Handle product attributes and variants
+        if (isset($validatedData['attributes']) || isset($validatedData['variants'])) {
+            $this->productVariantService->createOrUpdateVariants($product, $validatedData);
+        } else {
+            // If no attributes/variants are submitted, clear them out
+            $product->attributes()->delete();
+            $product->variants()->delete();
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
@@ -162,7 +172,7 @@ class ProductController extends Controller
         foreach ($product->images as $image) {
             Storage::disk('public')->delete($image->image_path);
         }
-        $product->delete(); // This will also delete related product_images due to cascade on delete in migration
+        $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
     }

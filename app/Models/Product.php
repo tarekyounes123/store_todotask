@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Products\ProductAttribute;
+use App\Models\Products\ProductVariant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -194,5 +196,21 @@ class Product extends Model
 
         $profitPerUnit = $this->getProfitPerUnitAttribute();
         return $buyPrice > 0 ? ($profitPerUnit / $buyPrice) * 100 : 0.0;
+    }
+
+    /**
+     * Get the attributes for the product.
+     */
+    public function attributes(): HasMany
+    {
+        return $this->hasMany(ProductAttribute::class);
+    }
+
+    /**
+     * Get the variants for the product.
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
     }
 }

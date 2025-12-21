@@ -39,29 +39,59 @@
                     </div>
                     <a href="#reviews" class="text-muted text-decoration-none">{{ __($product->review_count . ' Reviews') }}</a>
                 </div>
-                <p class="product-price display-6 fw-normal text-primary mb-4">${{ number_format($product->price, 2) }}</p>
+                <p class="product-price display-6 fw-normal text-primary mb-4" id="product-price">${{ number_format($product->price, 2) }}</p>
                 <p class="mb-4">{{ $product->description }}</p>
                 <div class="mb-4">
                     <p class="mb-1"><i class="bi bi-tag me-2"></i><strong>{{ __('Category:') }}</strong> {{ $product->category?->name ?? 'Uncategorized' }}</p>
                     <p class="mb-0"><i class="bi bi-box-seam me-2"></i><strong>{{ __('Stock:') }}</strong>
-                        @if($product->stock_quantity > 0)
-                            <span class="text-success">{{ $product->stock_quantity }} {{ __('items in stock') }}</span>
-                        @else
-                            <span class="text-danger">{{ __('Out of stock') }}</span>
-                        @endif
+                        <span id="product-stock-status">
+                            @if($product->stock_quantity > 0)
+                                <span class="text-success">{{ $product->stock_quantity }} {{ __('items in stock') }}</span>
+                            @else
+                                <span class="text-danger">{{ __('Out of stock') }}</span>
+                            @endif
+                        </span>
                     </p>
                 </div>
 
-                <div class="d-grid gap-2">
-                    @if($product->isInStock())
-                        <button id="add-to-cart-btn" class="btn btn-primary btn-lg" onclick="addToCart({{ $product->id }}, 1)">
-                            <i class="bi bi-cart-plus me-2"></i>{{ __('Add to Cart') }}
-                        </button>
-                    @else
-                        <button class="btn btn-secondary btn-lg" disabled>
-                            <i class="bi bi-x-circle me-2"></i>{{ __('Out of Stock') }}
-                        </button>
+                {{-- Variant Selection --}}
+                <div id="variant-selection-area" class="mb-4">
+                    @php
+                        $variantAttributes = $product->attributes->filter(fn($attr) => $attr->is_variant_attribute);
+                    @endphp
+
+                    @if ($variantAttributes->isNotEmpty() && $product->variants->isNotEmpty())
+                        @foreach ($variantAttributes as $attribute)
+                            <div class="mb-3">
+                                <label for="attribute-{{ $attribute->id }}" class="form-label">{{ $attribute->name }}</label>
+                                <select class="form-select variant-selector" data-attribute-id="{{ $attribute->id }}" id="attribute-{{ $attribute->id }}">
+                                    <option value="">Select {{ $attribute->name }}</option>
+                                    @foreach ($attribute->terms as $term)
+                                        @php
+                                            // Ensure this term is actually part of an available variant
+                                            $termIsAvailableInVariants = false;
+                                            foreach ($product->variants as $variant) {
+                                                if ($variant->terms->contains($term->attributeTerm->id)) {
+                                                    $termIsAvailableInVariants = true;
+                                                    break;
+                                                }
+                                            }
+                                        @endphp
+                                        @if($termIsAvailableInVariants)
+                                            <option value="{{ $term->attributeTerm->id }}">{{ $term->attributeTerm->value }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
                     @endif
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button id="add-to-cart-btn" class="btn btn-primary btn-lg" {{ $product->stock_quantity > 0 ? '' : 'disabled' }}>
+                        <i class="bi bi-cart-plus me-2"></i>{{ __('Add to Cart') }}
+                    </button>
+                    <input type="hidden" id="selected-variant-id" value="">
                     @auth
                         <button class="btn btn-outline-danger btn-lg favorite-button" data-product-id="{{ $product->id }}" data-is-favorited="{{ $product->is_favorited_by_user ? 'true' : 'false' }}">
                             <i class="bi {{ $product->is_favorited_by_user ? 'bi-heart-fill' : 'bi-heart' }} me-2"></i>
@@ -176,6 +206,13 @@
         });
     }
 
+    // Product data including variants for JavaScript
+    const productData = @json($product);
+    const variants = productData.variants;
+    const initialPrice = productData.price;
+    const initialStock = productData.stock_quantity;
+    let selectedVariantId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
         const firstThumbnail = document.querySelector('.thumbnail-item');
         if(firstThumbnail) {
@@ -184,8 +221,125 @@
         
         loadReviews();
         loadComments();
+
+        // Variant selection logic
+        const variantSelectors = document.querySelectorAll('.variant-selector');
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+        const productPriceElement = document.getElementById('product-price');
+        const productStockStatusElement = document.getElementById('product-stock-status');
+        const selectedVariantIdInput = document.getElementById('selected-variant-id');
+
+        // Initial check for variants
+        if (variants.length > 0) {
+            // Disable add to cart button initially for variant products until a valid selection is made
+            addToCartBtn.disabled = true;
+            productPriceElement.textContent = 'Select options';
+            productStockStatusElement.innerHTML = '<span class="text-muted">Select options for stock</span>';
+        }
+
+
+        variantSelectors.forEach(selector => {
+            selector.addEventListener('change', updateVariantDisplay);
+        });
+
+        function updateVariantDisplay() {
+            const selectedTerms = {};
+            variantSelectors.forEach(selector => {
+                if (selector.value) {
+                    selectedTerms[selector.dataset.attributeId] = parseInt(selector.value);
+                }
+            });
+
+            const selectedAttributeIds = Object.keys(selectedTerms);
+
+            // Find matching variant
+            const matchingVariant = variants.find(variant => {
+                const variantTermIds = variant.terms.map(term => term.attribute_term_id);
+                
+                // Check if all selected terms are present in this variant
+                return selectedAttributeIds.every(attrId => 
+                    variantTermIds.includes(selectedTerms[attrId])
+                ) && selectedAttributeIds.length === variant.terms.length; // Ensure exact match
+            });
+
+            if (matchingVariant && Object.keys(selectedTerms).length === variantSelectors.length) {
+                // Update price
+                productPriceElement.textContent = `$${parseFloat(matchingVariant.price).toFixed(2)}`;
+
+                // Update stock
+                if (matchingVariant.stock_quantity > 0) {
+                    productStockStatusElement.innerHTML = `<span class="text-success">${matchingVariant.stock_quantity} items in stock</span>`;
+                    addToCartBtn.disabled = false;
+                } else {
+                    productStockStatusElement.innerHTML = `<span class="text-danger">Out of stock</span>`;
+                    addToCartBtn.disabled = true;
+                }
+
+                // Update selected variant ID for add to cart
+                selectedVariantId = matchingVariant.id;
+                selectedVariantIdInput.value = matchingVariant.id;
+
+                // Update main image if variant has one (assuming image_path exists on variant)
+                if (matchingVariant.image_path) {
+                    changeMainImage(`{{ Storage::url('') }}${matchingVariant.image_path}`);
+                } else {
+                    // Revert to product's main image if variant has none
+                    const firstProductImage = productData.images.length > 0 ? productData.images[0].image_path : null;
+                    if (firstProductImage) {
+                        changeMainImage(`{{ Storage::url('') }}${firstProductImage}`);
+                    } else {
+                        changeMainImage("https://via.placeholder.com/600x600.png?text=No+Image");
+                    }
+                }
+            } else {
+                // No matching variant or incomplete selection
+                productPriceElement.textContent = `$${parseFloat(initialPrice).toFixed(2)}`;
+                if (initialStock > 0) {
+                    productStockStatusElement.innerHTML = `<span class="text-success">${initialStock} items in stock</span>`;
+                } else {
+                    productStockStatusElement.innerHTML = `<span class="text-danger">Out of stock</span>`;
+                }
+                
+                // Revert main image to product's default if no variant selected or no match
+                const firstProductImage = productData.images.length > 0 ? productData.images[0].image_path : null;
+                if (firstProductImage) {
+                    changeMainImage(`{{ Storage::url('') }}${firstProductImage}`);
+                } else {
+                    changeMainImage("https://via.placeholder.com/600x600.png?text=No+Image");
+                }
+
+                addToCartBtn.disabled = true;
+                selectedVariantId = null;
+                selectedVariantIdInput.value = '';
+                productPriceElement.textContent = 'Select options';
+                productStockStatusElement.innerHTML = '<span class="text-muted">Select options for stock</span>';
+
+                // If no variants for product, enable add to cart if product is in stock
+                if (variants.length === 0 && initialStock > 0) {
+                    addToCartBtn.disabled = false;
+                    productPriceElement.textContent = `$${parseFloat(initialPrice).toFixed(2)}`;
+                    productStockStatusElement.innerHTML = `<span class="text-success">${initialStock} items in stock</span>`;
+                } else if (variants.length === 0 && initialStock <= 0) {
+                     addToCartBtn.disabled = true;
+                    productPriceElement.textContent = `$${parseFloat(initialPrice).toFixed(2)}`;
+                    productStockStatusElement.innerHTML = `<span class="text-danger">Out of stock</span>`;
+                }
+            }
+        }
+
+        // Manually trigger initial update if no variants or if some pre-selected options are present
+        if (variants.length === 0) {
+            updateVariantDisplay(); // To correctly enable/disable Add to Cart for simple products
+        } else {
+            // Check if any selectors already have values (e.g., from old input on validation error)
+            const hasPreselected = Array.from(variantSelectors).some(selector => selector.value !== '');
+            if (hasPreselected) {
+                 updateVariantDisplay();
+            }
+        }
     });
 
+    // --- Existing Functions ---
     // Rating selection functionality
     document.querySelectorAll('.rating-options button').forEach(button => {
         button.addEventListener('click', function() {
@@ -317,17 +471,32 @@
         });
     });
 
-    function addToCart(productId, quantity) {
+    document.getElementById('add-to-cart-btn')?.addEventListener('click', function() {
+        const productId = productData.id;
+        const quantity = 1; // Assuming always adding 1 for now
+
+        if (variants.length > 0 && selectedVariantId === null) {
+            alert('Please select all variant options before adding to cart.');
+            return;
+        }
+
         fetch('/cart/add', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ product_id: productId, quantity: quantity })
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: quantity,
+                product_variant_id: selectedVariantId // This will be null for simple products
+            })
         }).then(response => response.json()).then(data => {
             if(data.success) {
                 alert('Product added to cart!');
                 updateCartCount();
+            } else if (data.message) {
+                alert(data.message);
             }
-        });
-    }
+        }).catch(error => console.error('Error adding to cart:', error));
+    });
+
 </script>
 @endpush

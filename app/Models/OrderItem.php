@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Products\ProductVariant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent->Relations\BelongsTo;
 
 class OrderItem extends Model
 {
@@ -18,6 +19,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'product_variant_id', // Add product_variant_id to fillable
         'quantity',
         'price',
     ];
@@ -36,5 +38,13 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the product variant associated with the order item.
+     */
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
     }
 }

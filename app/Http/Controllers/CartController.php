@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\Products\ProductVariant; // Import ProductVariant
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,6 +18,8 @@ class CartController extends Controller
     {
         try {
             $cart = $this->getOrCreateCart();
+            // Eager load product and variant details for display
+            $cart->load('cartItems.product.images', 'cartItems.productVariant.terms.attribute');
             return view('cart.index', compact('cart'));
         } catch (\Exception $e) {
             \Log::error('Cart view error: ' . $e->getMessage());
@@ -31,45 +34,64 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id', // New: nullable for simple products
             'quantity' => 'required|integer|min:1|max:999'
         ]);
 
         $product = Product::findOrFail($request->product_id);
+        $itemPrice = $product->price;
+        $stockSource = $product; // Default to product for stock
+
+        // If a variant is selected, use its details
+        if ($request->filled('product_variant_id')) {
+            $variant = ProductVariant::where('id', $request->product_variant_id)
+                                    ->where('product_id', $product->id)
+                                    ->firstOrFail();
+            $itemPrice = $variant->price ?? $product->price; // Use variant price if available, else product price
+            $stockSource = $variant; // Use variant for stock
+        }
 
         // Check if there's enough stock
-        if (!$product->hasStock($request->quantity)) {
+        if (!$stockSource->hasStock($request->quantity)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Not enough stock available. Only ' . $product->stock_quantity . ' items in stock.'
+                'message' => 'Not enough stock available. Only ' . $stockSource->stock_quantity . ' items in stock.'
             ], 400);
         }
 
         $cart = $this->getOrCreateCart();
 
-        // Check if the product is already in the cart
-        $cartItem = $cart->cartItems()->where('product_id', $request->product_id)->first();
+        // Check if the product/variant combination is already in the cart
+        $cartItemQuery = $cart->cartItems()->where('product_id', $request->product_id);
+        if ($request->filled('product_variant_id')) {
+            $cartItemQuery->where('product_variant_id', $request->product_variant_id);
+        } else {
+            $cartItemQuery->whereNull('product_variant_id');
+        }
+        $cartItem = $cartItemQuery->first();
 
         // Calculate total quantity (existing + new)
         $totalQuantity = $cartItem ? ($cartItem->quantity + $request->quantity) : $request->quantity;
 
         // Check if total quantity exceeds available stock
-        if (!$product->hasStock($totalQuantity)) {
+        if (!$stockSource->hasStock($totalQuantity)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Not enough stock available. Only ' . $product->stock_quantity . ' items in stock. You currently have ' . ($cartItem ? $cartItem->quantity : 0) . ' in your cart.'
+                'message' => 'Not enough stock available. Only ' . $stockSource->stock_quantity . ' items in stock. You currently have ' . ($cartItem ? $cartItem->quantity : 0) . ' in your cart.'
             ], 400);
         }
 
         if ($cartItem) {
-            // Update the quantity if the product already exists in the cart
+            // Update the quantity if the product/variant already exists in the cart
             $cartItem->quantity = $totalQuantity;
             $cartItem->save();
         } else {
             // Add new item to cart
             $cart->cartItems()->create([
                 'product_id' => $request->product_id,
+                'product_variant_id' => $request->product_variant_id, // Store variant ID
                 'quantity' => $request->quantity,
-                'price' => $product->price, // Store the price at the time of adding
+                'price' => $itemPrice, // Store the determined price at the time of adding
             ]);
         }
 
@@ -100,13 +122,14 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $product = $cartItem->product;
+        // Determine stock source (product or variant)
+        $stockSource = $cartItem->productVariant ?? $cartItem->product;
 
         // Check if there's enough stock for the requested quantity
-        if (!$product->hasStock($request->quantity)) {
+        if (!$stockSource->hasStock($request->quantity)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Not enough stock available. Only ' . $product->stock_quantity . ' items in stock.'
+                'message' => 'Not enough stock available. Only ' . $stockSource->stock_quantity . ' items in stock.'
             ], 400);
         }
 

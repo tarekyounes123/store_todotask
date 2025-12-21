@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\StockManagementController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\AttributeController; // Import AttributeController
 
 Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
 
@@ -124,6 +125,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Site Settings routes
     Route::get('/site-settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'edit'])->name('site-settings.edit');
     Route::put('/site-settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'update'])->name('site-settings.update');
+
+    // Product Attributes routes
+    Route::resource('attributes', AttributeController::class);
+    Route::get('attributes/{attribute}/terms/create', [AttributeController::class, 'createTerm'])->name('attributes.terms.create');
+    Route::post('attributes/{attribute}/terms', [AttributeController::class, 'storeTerm'])->name('attributes.terms.store');
+    Route::get('attributes/{attribute}/terms/{term}/edit', [AttributeController::class, 'editTerm'])->name('attributes.terms.edit');
+    Route::put('attributes/{attribute}/terms/{term}', [AttributeController::class, 'updateTerm'])->name('attributes.terms.update');
+    Route::delete('attributes/{attribute}/terms/{term}', [AttributeController::class, 'destroyTerm'])->name('attributes.terms.destroy');
 });
 
 // API routes for notifications - ensure JSON responses even for auth issues

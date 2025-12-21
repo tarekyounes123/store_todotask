@@ -80,7 +80,14 @@ class PublicProductController extends Controller
     public function show(Product $product)
     {
         // Eager load category and images for the specific product
-        $product->load('category', 'images');
+        // Eager load product attributes and variants for display
+        $product->load([
+            'category',
+            'images',
+            'attributes.attribute',
+            'attributes.terms.attributeTerm',
+            'variants.terms.attribute',
+        ]);
 
         // Eager load favoritedBy relationship for the authenticated user
         if (auth()->check()) {

@@ -16,6 +16,11 @@ class CheckoutController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $cart = $user->cart;
+
+        if (!$cart || $cart->cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+        }
 
         // Split the name into first and last name if they're not already set
         if (empty($user->first_name) || empty($user->last_name)) {
@@ -24,7 +29,11 @@ class CheckoutController extends Controller
             $user->last_name = $user->last_name ?? ($nameParts[1] ?? '');
         }
 
-        return view('checkout.index', compact('user'));
+        // Eager load cart items with product and variant details for stock validation display
+        $cart->load('cartItems.product', 'cartItems.productVariant');
+
+
+        return view('checkout.index', compact('user', 'cart'));
     }
 
     /**
@@ -64,11 +73,24 @@ class CheckoutController extends Controller
                 'country' => $request->country,
             ]);
 
-            // Get the user's cart
-            $cart = $user->cart;
+            // Get the user's cart and eager load necessary relationships for stock checks
+            $cart = $user->cart->load('cartItems.product', 'cartItems.productVariant');
             if (!$cart || $cart->cartItems->isEmpty()) {
+                DB::rollBack();
                 return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
             }
+
+            // --- Per-item stock validation BEFORE creating order ---
+            foreach ($cart->cartItems as $cartItem) {
+                $stockSource = $cartItem->productVariant ?? $cartItem->product; // Determine if variant or simple product
+                if (!$stockSource || !$stockSource->hasStock($cartItem->quantity)) {
+                    DB::rollBack();
+                    $productName = $cartItem->product->name;
+                    $variantDetails = $cartItem->productVariant ? '(' . $cartItem->productVariant->terms->map(fn($term) => $term->attribute->name . ': ' . $term->value)->implode(', ') . ')' : '';
+                    return redirect()->route('cart.index')->with('error', "Not enough stock for {$productName} {$variantDetails}. Available: {$stockSource->stock_quantity}. Requested: {$cartItem->quantity}.");
+                }
+            }
+            // --- End stock validation ---
 
             // Calculate totals
             $subtotal = $cart->subtotal;
@@ -100,13 +122,14 @@ class CheckoutController extends Controller
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id, // Store variant ID if present
                     'quantity' => $cartItem->quantity,
                     'price' => $cartItem->price,
                 ]);
 
-                // Reduce stock for the product
-                $product = $cartItem->product;
-                $product->reduceStock($cartItem->quantity, 'order', $order->id, "Stock reduced for order #{$order->order_number}");
+                // Reduce stock for the product or variant
+                $stockSource = $cartItem->productVariant ?? $cartItem->product;
+                $stockSource->reduceStock($cartItem->quantity, 'order', $order->id, "Stock reduced for order #{$order->order_number}");
             }
 
             // Dispatch event for the new order

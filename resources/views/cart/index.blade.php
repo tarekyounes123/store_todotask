@@ -30,8 +30,27 @@
                                 <tr data-item-id="{{ $item->id }}">
                                     <td>
                                         <div class="d-flex align-items-center">
+                                            @php
+                                                $imagePath = 'https://via.placeholder.com/50x50.png?text=No+Image';
+                                                if ($item->productVariant && $item->productVariant->image_path) {
+                                                    $imagePath = Storage::url($item->productVariant->image_path);
+                                                } elseif ($item->product->images->isNotEmpty()) {
+                                                    $imagePath = Storage::url($item->product->images->first()->image_path);
+                                                }
+                                            @endphp
+                                            <img src="{{ $imagePath }}" alt="{{ $item->product->name ?? 'Product' }}" class="img-thumbnail me-3" style="width: 70px; height: 70px; object-fit: cover;">
                                             <div>
                                                 <h6 class="mb-0">{{ $item->product->name ?? 'Product Name' }}</h6>
+                                                @if ($item->productVariant)
+                                                    <small class="text-muted">
+                                                        @php
+                                                            $variantDetails = $item->productVariant->terms->map(function($term) {
+                                                                return $term->attribute->name . ': ' . $term->value;
+                                                            })->implode(', ');
+                                                        @endphp
+                                                        {{ $variantDetails }}
+                                                    </small>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
