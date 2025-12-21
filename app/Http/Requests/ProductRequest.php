@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class ProductRequest extends FormRequest
 {
@@ -39,7 +40,26 @@ class ProductRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
-                Rule::unique('product_variants')->ignore($this->variant_id),
+                function ($attribute, $value, $fail) {
+                    // Extract the index from the attribute string (e.g., "variants.0.sku" -> "0")
+                    preg_match('/variants\.(\d+)\.sku/', $attribute, $matches);
+                    $index = $matches[1] ?? null;
+
+                    if ($index !== null && $value !== null) { // Only check if SKU is provided
+                        $variantId = $this->input("variants.{$index}.id");
+
+                        $query = \DB::table('product_variants')
+                                     ->where('sku', $value);
+
+                        if ($variantId) {
+                            $query->where('id', '!=', $variantId);
+                        }
+
+                        if ($query->exists()) {
+                            $fail('The SKU "' . $value . '" has already been taken by another variant.');
+                        }
+                    }
+                },
             ],
             'variants.*.stock_quantity' => 'required|integer|min:0',
             'variants.*.terms' => [

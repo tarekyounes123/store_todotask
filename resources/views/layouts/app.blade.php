@@ -217,6 +217,11 @@
                                         <li><a class="dropdown-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                                             <i class="bi bi-tags me-1"></i> {{ __('Category Management') }}
                                         </a></li>
+                                        <li><a class="dropdown-item {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}"
+                                            href="{{ route('admin.attributes.index') }}">
+                                                <i class="bi bi-list-check me-1"></i> {{ __('Attribute Management') }}
+                                            </a>
+                                        </li>
                                         <li><a class="dropdown-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
                                             <i class="bi bi-box-seam me-1"></i> {{ __('Product Management') }}
                                         </a></li>

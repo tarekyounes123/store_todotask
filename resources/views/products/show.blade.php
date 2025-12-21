@@ -235,12 +235,21 @@
             addToCartBtn.disabled = true;
             productPriceElement.textContent = 'Select options';
             productStockStatusElement.innerHTML = '<span class="text-muted">Select options for stock</span>';
+        } else if (initialStock > 0) {
+            // For simple products (no variants), enable add to cart if in stock
+            addToCartBtn.disabled = false;
+        } else {
+            // For simple products with no stock, disable button
+            addToCartBtn.disabled = true;
         }
 
 
         variantSelectors.forEach(selector => {
             selector.addEventListener('change', updateVariantDisplay);
         });
+
+        // Manually trigger initial update to handle any pre-selected options or initial state
+        updateVariantDisplay();
 
         function updateVariantDisplay() {
             const selectedTerms = {};
@@ -252,17 +261,28 @@
 
             const selectedAttributeIds = Object.keys(selectedTerms);
 
-            // Find matching variant
-            const matchingVariant = variants.find(variant => {
-                const variantTermIds = variant.terms.map(term => term.attribute_term_id);
-                
-                // Check if all selected terms are present in this variant
-                return selectedAttributeIds.every(attrId => 
-                    variantTermIds.includes(selectedTerms[attrId])
-                ) && selectedAttributeIds.length === variant.terms.length; // Ensure exact match
-            });
+            // Find matching variant - check if all selected attributes match a variant
+            let matchingVariant = null;
 
-            if (matchingVariant && Object.keys(selectedTerms).length === variantSelectors.length) {
+            if (selectedAttributeIds.length > 0) {
+                matchingVariant = variants.find(variant => {
+                    // Map variant terms to their IDs for comparison
+                    const variantTermIds = variant.terms.map(term => term.id);
+
+                    // Check if all selected terms are present in this variant
+                    const allSelectedTermsMatch = selectedAttributeIds.every(attrId =>
+                        variantTermIds.includes(selectedTerms[attrId])
+                    );
+
+                    // Also check if the number of selected attributes matches the number of terms in the variant
+                    // This ensures we have a complete match (not partial)
+                    const hasCompleteMatch = selectedAttributeIds.length === variant.terms.length;
+
+                    return allSelectedTermsMatch && hasCompleteMatch;
+                });
+            }
+
+            if (matchingVariant) {
                 // Update price
                 productPriceElement.textContent = `$${parseFloat(matchingVariant.price).toFixed(2)}`;
 
@@ -299,7 +319,7 @@
                 } else {
                     productStockStatusElement.innerHTML = `<span class="text-danger">Out of stock</span>`;
                 }
-                
+
                 // Revert main image to product's default if no variant selected or no match
                 const firstProductImage = productData.images.length > 0 ? productData.images[0].image_path : null;
                 if (firstProductImage) {
@@ -475,10 +495,25 @@
         const productId = productData.id;
         const quantity = 1; // Assuming always adding 1 for now
 
+        // Check if we have variants but no variant selected
         if (variants.length > 0 && selectedVariantId === null) {
             alert('Please select all variant options before adding to cart.');
             return;
         }
+
+        // Log the data being sent for debugging
+        console.log('Adding to cart:', {
+            product_id: productId,
+            quantity: quantity,
+            product_variant_id: selectedVariantId,
+            variants_count: variants.length
+        });
+
+        // Show loading state
+        const originalText = this.innerHTML;
+        const originalDisabled = this.disabled;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+        this.disabled = true;
 
         fetch('/cart/add', {
             method: 'POST',
@@ -488,14 +523,25 @@
                 quantity: quantity,
                 product_variant_id: selectedVariantId // This will be null for simple products
             })
-        }).then(response => response.json()).then(data => {
+        }).then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        }).then(data => {
+            console.log('Response data:', data);
             if(data.success) {
                 alert('Product added to cart!');
                 updateCartCount();
             } else if (data.message) {
                 alert(data.message);
             }
-        }).catch(error => console.error('Error adding to cart:', error));
+        }).catch(error => {
+            console.error('Error adding to cart:', error);
+            alert('An error occurred while adding the product to cart. Please try again.');
+        }).finally(() => {
+            // Restore original button state
+            this.innerHTML = originalText;
+            this.disabled = originalDisabled;
+        });
     });
 
 </script>

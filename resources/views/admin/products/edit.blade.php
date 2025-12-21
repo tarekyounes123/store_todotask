@@ -91,10 +91,12 @@
                                                 <h6>Terms:</h6>
                                                 <div class="d-flex flex-wrap align-items-center mb-2">
                                                     @foreach ($prodAttr->terms as $prodAttrTerm)
-                                                        <span class="badge bg-primary me-1 term-badge" data-term-value="{{ $prodAttrTerm->attributeTerm->value ?? $prodAttrTerm->value }}">
+                                                        <span class="badge bg-primary me-1 term-badge"
+                                                            data-term-value="{{ $prodAttrTerm->attributeTerm->value ?? $prodAttrTerm->value }}">
                                                             {{ $prodAttrTerm->attributeTerm->value ?? $prodAttrTerm->value }}
                                                             <button type="button" class="btn-close btn-close-white remove-term-btn" aria-label="Close"></button>
-                                                            <input type="hidden" name="attributes[{{ $prodAttr->attribute_id }}][terms][]" value="{{ $prodAttrTerm->attributeTerm->value ?? $prodAttrTerm->value }}">
+                                                            <input type="hidden" name="attributes[{{ $prodAttr->attribute_id }}][terms][{{ $loop->index }}][id]" value="{{ $prodAttrTerm->attribute_term_id }}">
+                                                            <input type="hidden" name="attributes[{{ $prodAttr->attribute_id }}][terms][{{ $loop->index }}][value]" value="{{ $prodAttrTerm->attributeTerm->value ?? $prodAttrTerm->value }}">
                                                         </span>
                                                     @endforeach
                                                     <input type="text" class="form-control form-control-sm w-auto d-inline-block add-term-input" placeholder="New term">
@@ -152,6 +154,7 @@
                                                             @foreach ($variant->terms as $term)
                                                                 <input type="hidden" name="variants[{{ $variant->id }}][terms][]" value="{{ $term->id }}">
                                                             @endforeach
+                                                            <input type="hidden" name="variants[{{ $variant->id }}][id]" value="{{ $variant->id }}">
                                                         </td>
                                                         <td><input type="text" name="variants[{{ $variant->id }}][sku]" value="{{ old('variants.' . $variant->id . '.sku', $variant->sku) }}" class="form-control"></td>
                                                         <td><input type="number" name="variants[{{ $variant->id }}][price]" value="{{ old('variants.' . $variant->id . '.price', $variant->price) }}" step="0.01" class="form-control"></td>
@@ -301,7 +304,8 @@
                         <span class="badge bg-primary me-1 term-badge" data-term-value="${termValue}">
                             ${termValue}
                             <button type="button" class="btn-close btn-close-white remove-term-btn" aria-label="Close"></button>
-                            <input type="hidden" name="attributes[${attributeUniqueId}][terms][]" value="${termValue}">
+                            <input type="hidden" name="attributes[${attributeUniqueId}][terms][][id]" value="">
+                            <input type="hidden" name="attributes[${attributeUniqueId}][terms][][value]" value="${termValue}">
                         </span>
                     `;
                     termsWrapper.insertAdjacentHTML('afterbegin', termHtml);
@@ -347,8 +351,13 @@
                     const attributeName = item.querySelector('h5').textContent.trim();
                     const terms = [];
                     item.querySelectorAll('.attribute-terms-wrapper .term-badge').forEach(badge => {
+                        // Find the hidden input for the term ID within the badge
+                        const hiddenIdInput = badge.querySelector('input[type="hidden"][name*="[id]"]');
+                        const termId = hiddenIdInput ? hiddenIdInput.value : null;
+
                         terms.push({
                             value: badge.dataset.termValue,
+                            id: termId, // Use the ID from the hidden input
                             attributeName: attributeName, // Store attribute name for display
                             attributeId: attributeId, // Store attribute ID for hidden input
                         });
@@ -420,7 +429,12 @@
                         <tr data-variant-id="${variantId}">
                             <td>
                                 ${termsDisplay}
-                                ${combination.map(term => `<input type="hidden" name="variants[${variantId}][terms][]" value="${term.value}">`).join('')}
+                                ${combination.map((term, termIndex) => `
+                                    <input type="hidden" name="variants[${variantId}][terms][${termIndex}][attribute_term_id]" value="${term.id}">
+                                    <input type="hidden" name="variants[${variantId}][terms][${termIndex}][value]" value="${term.value}">
+                                    <input type="hidden" name="variants[${variantId}][terms][${termIndex}][attribute_id]" value="${term.attributeId}">
+                                `).join('')}
+                                ${!variantId.startsWith('new-') ? `<input type="hidden" name="variants[${variantId}][id]" value="${variantId}">` : ''}
                             </td>
                             <td><input type="text" name="variants[${variantId}][sku]" value="${prefillData.sku}" class="form-control"></td>
                             <td><input type="number" name="variants[${variantId}][price]" value="${prefillData.price}" step="0.01" class="form-control"></td>
