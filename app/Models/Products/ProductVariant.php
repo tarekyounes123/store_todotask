@@ -21,7 +21,10 @@ class ProductVariant extends Model
         'image_path',
         'is_enabled',
     ];
-
+   // Ensure is_enabled is always cast to boolean
+    protected $casts = [
+        'is_enabled' => 'boolean',
+    ];
     /**
      * Check if there's enough stock for a given quantity
      */

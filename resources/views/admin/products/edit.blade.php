@@ -160,9 +160,13 @@
                                                         <td><input type="number" name="variants[{{ $variant->id }}][price]" value="{{ old('variants.' . $variant->id . '.price', $variant->price) }}" step="0.01" class="form-control"></td>
                                                         <td><input type="number" name="variants[{{ $variant->id }}][stock_quantity]" value="{{ old('variants.' . $variant->id . '.stock_quantity', $variant->stock_quantity) }}" class="form-control"></td>
                                                         <td>
+                                                            @php
+                                                                $currentStatus = old('variants.' . $variant->id . '.is_enabled', $variant->is_enabled);
+                                                                $currentStatus = $currentStatus ?? 1; // Default to enabled if null
+                                                            @endphp
                                                             <select name="variants[{{ $variant->id }}][is_enabled]" class="form-select">
-                                                                <option value="1" {{ old('variants.' . $variant->id . '.is_enabled', $variant->is_enabled) ? 'selected' : '' }}>Enabled</option>
-                                                                <option value="0" {{ !old('variants.' . $variant->id . '.is_enabled', $variant->is_enabled) ? 'selected' : '' }}>Disabled</option>
+                                                                <option value="1" {{ $currentStatus ? 'selected' : '' }}>Enabled</option>
+                                                                <option value="0" {{ !$currentStatus ? 'selected' : '' }}>Disabled</option>
                                                             </select>
                                                         </td>
                                                         <td>
@@ -441,8 +445,8 @@
                             <td><input type="number" name="variants[${variantId}][stock_quantity]" value="${prefillData.stock_quantity}" class="form-control"></td>
                             <td>
                                 <select name="variants[${variantId}][is_enabled]" class="form-select">
-                                    <option value="1" ${prefillData.is_enabled == '1' ? 'selected' : ''}>Enabled</option>
-                                    <option value="0" ${prefillData.is_enabled == '0' ? 'selected' : ''}>Disabled</option>
+                                    <option value="1" ${prefillData.is_enabled == '1' || prefillData.is_enabled === true || (prefillData.is_enabled !== '0' && prefillData.is_enabled !== false) ? 'selected' : (prefillData.id && !prefillData.is_enabled ? '' : 'selected')}>Enabled</option>
+                                    <option value="0" ${prefillData.is_enabled == '0' || prefillData.is_enabled === false ? 'selected' : (!prefillData.id && !prefillData.is_enabled ? 'selected' : '')}>Disabled</option>
                                 </select>
                             </td>
                             <td>
@@ -469,6 +473,7 @@
                 }
             }
         });
+
     });
 </script>
 @endpush

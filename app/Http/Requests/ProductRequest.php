@@ -62,6 +62,7 @@ class ProductRequest extends FormRequest
                 },
             ],
             'variants.*.stock_quantity' => 'required|integer|min:0',
+            'variants.*.is_enabled' => 'required|in:0,1',
             'variants.*.terms' => [
                 'required',
                 'array',

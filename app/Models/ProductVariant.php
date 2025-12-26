@@ -21,7 +21,8 @@ class ProductVariant extends Model
         'price',
         'stock_quantity',
         'attributes',
-        'is_active',
+        'is_enabled',
+        'image_path',
     ];
 
     /**
@@ -32,6 +33,7 @@ class ProductVariant extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'attributes' => 'array',
+        'is_enabled' => 'boolean',
     ];
 
     /**
@@ -64,6 +66,6 @@ class ProductVariant extends Model
      */
     public function isInStock(): bool
     {
-        return $this->stock_quantity > 0 && $this->is_active;
+        return $this->stock_quantity > 0 && $this->is_enabled;
     }
 }

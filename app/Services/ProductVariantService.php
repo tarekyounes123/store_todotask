@@ -41,6 +41,14 @@ class ProductVariantService
      */
     public function createOrUpdateVariants(Product $product, array $data): void
     {
+        // Log the incoming data to see what's being received from the UI
+        \Log::info('ProductVariantService createOrUpdateVariants received data:', [
+            'product_id' => $product->id,
+            'data_keys' => array_keys($data),
+            'variants_count' => isset($data['variants']) ? count($data['variants']) : 0,
+            'variants_sample' => isset($data['variants']) ? array_slice($data['variants'], 0, 2, true) : null
+        ]);
+
         DB::transaction(function () use ($product, $data) {
             // Store IDs of variants that are being processed (updated or created)
             $processedVariantIds = [];
@@ -95,7 +103,17 @@ class ProductVariantService
 
             // --- 2. Process Product Variants ---
             if (isset($data['variants']) && is_array($data['variants'])) {
+                \Log::info('Processing variants:', [
+                    'variant_keys' => array_keys($data['variants']),
+                    'first_variant_sample' => isset($data['variants']) && count($data['variants']) > 0 ? reset($data['variants']) : null
+                ]);
+
                 foreach ($data['variants'] as $variantId => $variantData) {
+                    \Log::info('Processing individual variant:', [
+                        'variant_id' => $variantId,
+                        'variant_data' => $variantData
+                    ]);
+
                     $existingVariant = null;
 
                     // The $variantId is the array key which should be the actual variant ID from the form
@@ -107,6 +125,11 @@ class ProductVariantService
                             ->where('id', $variantId)
                             ->where('product_id', $product->id) // Additional safety check
                             ->first();
+
+                        \Log::info('Found existing variant:', [
+                            'variant_id' => $variantId,
+                            'existing_variant_found' => $existingVariant !== null
+                        ]);
                     }
 
                     // Process terms for the current variant data to ensure valid attribute_term_ids
@@ -114,6 +137,11 @@ class ProductVariantService
 
                     // Handle different formats of term data that might come from the form
                     if (isset($variantData['terms'])) {
+                        \Log::info('Processing terms for variant:', [
+                            'variant_id' => $variantId,
+                            'terms_data' => $variantData['terms']
+                        ]);
+
                         foreach ($variantData['terms'] as $termInput) {
                             // Check if $termInput is an array (structured format) or a simple ID (flat format)
                             if (is_array($termInput)) {
@@ -156,6 +184,11 @@ class ProductVariantService
                     // Make sure terms are unique and sorted for consistent matching
                     $actualVariantTermIds = collect($actualVariantTermIds)->unique()->sort()->values()->all();
 
+                    \Log::info('Final terms for variant:', [
+                        'variant_id' => $variantId,
+                        'actualVariantTermIds' => $actualVariantTermIds
+                    ]);
+
                     if ($existingVariant) {
                         // Update the existing variant directly using its ID - this is the key fix
                         $this->syncVariantData($existingVariant, $variantData);
@@ -164,6 +197,12 @@ class ProductVariantService
                         // Since we now properly handle both formats (structured and flat), $actualVariantTermIds should contain the correct terms
                         if (!empty($actualVariantTermIds)) {
                             $existingVariant->terms()->sync($actualVariantTermIds);
+                            \Log::info('Synced terms for existing variant:', [
+                                'variant_id' => $variantId,
+                                'synced_terms' => $actualVariantTermIds
+                            ]);
+                        } else {
+                            \Log::warning('No terms to sync for existing variant:', ['variant_id' => $variantId]);
                         }
                         $processedVariantIds[] = $existingVariant->id;
                     } else {
@@ -175,13 +214,16 @@ class ProductVariantService
                             'image_path' => $variantData['image_path'] ?? null,
                             'is_enabled' => $variantData['is_enabled'] ?? true,
                         ]);
-                        echo "<script>console.log(" . json_encode($ $newVariant) . ");</script>";
 
                         if (!empty($actualVariantTermIds)) {
                             $newVariant->terms()->attach($actualVariantTermIds);
                         }
                         $processedVariantIds[] = $newVariant->id;
-                     echo   $variantData['is_enabled'];
+
+                        \Log::info('Created new variant:', [
+                            'new_variant_id' => $newVariant->id,
+                            'variant_data' => $variantData
+                        ]);
                     }
                 }
             }
@@ -222,25 +264,21 @@ class ProductVariantService
         return null;
     }
 
- public function syncVariantData(ProductVariant $variant, array $data)
-{
-    $isEnabled = $variant->is_enabled;
+    public function syncVariantData(ProductVariant $variant, array $data)
+    {
+        $updateData = [
+            'price' => $data['price'],
+            'sku' => $data['sku'] ?? null,
+            'stock_quantity' => $data['stock_quantity'],
+            'image_path' => $data['image_path'] ?? null,
+        ];
 
-    // Handle all possible status keys safely
-    if (array_key_exists('is_enabled', $data)) {
-        $isEnabled = in_array($data['is_enabled'], [1, '1', true, 'enabled'], true);
-    } elseif (array_key_exists('status', $data)) {
-        $isEnabled = in_array($data['status'], [1, '1', true, 'enabled'], true);
+        // Only update is_enabled if it's explicitly provided in the request data
+        // Otherwise, preserve the existing value to prevent unintended changes
+        if (array_key_exists('is_enabled', $data)) {
+            $updateData['is_enabled'] = (bool) $data['is_enabled'];
+        }
+
+        $variant->update($updateData);
     }
-
-    $variant->update([
-        'price' => $data['price'],
-        'sku' => $data['sku'] ?? null,
-        'stock_quantity' => $data['stock_quantity'],
-        'image_path' => $data['image_path'] ?? null,
-        'is_enabled' => $isEnabled,
-    ]);
-}
-
-
 }
