@@ -66,14 +66,18 @@ class ProductVariantService
 
                 $termIds = [];
                 foreach ($attributeData['terms'] ?? [] as $termValue) {
+                    // Determine the actual value based on whether it's an array or string
+                    $actualValue = is_array($termValue) ? ($termValue['value'] ?? (is_string($termValue) ? $termValue : '')) : $termValue;
+                    // Ensure $actualValue is a string for the slug
+                    $actualValue = is_string($actualValue) ? $actualValue : (string) $actualValue;
                     // Find or create the global attribute term
                     $term = AttributeTerm::firstOrCreate(
                         [
                             'attribute_id' => $attribute->id,
-                            'slug' => Str::slug($termValue['value'])
+                            'slug' => Str::slug($actualValue)
                         ],
                         [
-                            'value' => $termValue['value'] ?? $termValue
+                            'value' => $actualValue
                         ]
                     );
                     $termIds[] = $term->id;
@@ -91,60 +95,79 @@ class ProductVariantService
 
             // --- 2. Process Product Variants ---
             if (isset($data['variants']) && is_array($data['variants'])) {
-                foreach ($data['variants'] as $variantData) {
+                foreach ($data['variants'] as $variantId => $variantData) {
                     $existingVariant = null;
 
-                    // Try to find variant by ID first (for existing variants being updated)
-                    if (isset($variantData['id']) && !Str::startsWith($variantData['id'], 'new-')) {
-                        $existingVariant = $product->variants()->find($variantData['id']);
+                    // The $variantId is the array key which should be the actual variant ID from the form
+                    // Check if this is an existing variant by looking at the key (which is the ID)
+                    if ($variantId && !Str::startsWith($variantId, 'new-')) {
+                        // Find the exact variant by ID to ensure we're updating the correct one
+                        // This is the critical fix - we must ensure we're updating the right variant
+                        $existingVariant = $product->variants()
+                            ->where('id', $variantId)
+                            ->where('product_id', $product->id) // Additional safety check
+                            ->first();
                     }
 
                     // Process terms for the current variant data to ensure valid attribute_term_ids
                     $actualVariantTermIds = [];
-                    foreach ($variantData['terms'] ?? [] as $termInput) {
-                        $termId = $termInput['attribute_term_id'] ?? null;
-                        $termValue = $termInput['value'] ?? null;
-                        $attributeId = $termInput['attribute_id'] ?? null;
 
-                        if ($termId) {
-                            // If we have an ID, use it (it's an existing term)
-                            $actualVariantTermIds[] = $termId;
-                        } elseif ($termValue !== null && $attributeId !== null) {
-                            // If we don't have an ID but have value and attribute_id, find or create the term
-                            $term = AttributeTerm::firstOrCreate(
-                                [
-                                    'attribute_id' => $attributeId,
-                                    'slug' => Str::slug($termValue)
-                                ],
-                                [
-                                    'value' => $termValue
-                                ]
-                            );
-                            $actualVariantTermIds[] = $term->id;
-                        } else {
-                            // This case indicates an invalid term input, possibly a new term without sufficient data
-                            \Log::warning("Skipping invalid variant term input: " . json_encode($termInput));
+                    // Handle different formats of term data that might come from the form
+                    if (isset($variantData['terms'])) {
+                        foreach ($variantData['terms'] as $termInput) {
+                            // Check if $termInput is an array (structured format) or a simple ID (flat format)
+                            if (is_array($termInput)) {
+                                // Structured format: ['attribute_term_id' => id, 'value' => val, 'attribute_id' => id]
+                                $termId = $termInput['attribute_term_id'] ?? null;
+                                $termValue = $termInput['value'] ?? null;
+                                $attributeId = $termInput['attribute_id'] ?? null;
+
+                                if ($termId) {
+                                    // If we have an ID, use it (it's an existing term)
+                                    $actualVariantTermIds[] = $termId;
+                                } elseif ($termValue !== null && $attributeId !== null) {
+                                    // If we don't have an ID but have value and attribute_id, find or create the term
+                                    // Ensure $termValue is a string for the slug
+                                    $termValueString = is_string($termValue) ? $termValue : (string) $termValue;
+                                    $term = AttributeTerm::firstOrCreate(
+                                        [
+                                            'attribute_id' => $attributeId,
+                                            'slug' => Str::slug($termValueString)
+                                        ],
+                                        [
+                                            'value' => $termValueString
+                                        ]
+                                    );
+                                    $actualVariantTermIds[] = $term->id;
+                                } else {
+                                    // This case indicates an invalid term input, possibly a new term without sufficient data
+                                    \Log::warning("Skipping invalid variant term input: " . json_encode($termInput));
+                                }
+                            } else {
+                                // Flat format: just the term ID (this is how existing variants are sent from the form)
+                                // This handles the case where terms are sent as a simple array of IDs
+                                if (is_numeric($termInput) || is_string($termInput)) {
+                                    $actualVariantTermIds[] = (int) $termInput;
+                                }
+                            }
                         }
                     }
 
                     // Make sure terms are unique and sorted for consistent matching
                     $actualVariantTermIds = collect($actualVariantTermIds)->unique()->sort()->values()->all();
 
-                    // If not found by ID, try to find by terms (for newly generated variants or if ID match failed)
-                    // Only try term matching if we didn't find the variant by ID
-                    if (!$existingVariant) {
-                        // Look for an existing variant with the same combination of terms
-                        $existingVariant = $this->findVariantByTerms($product, $actualVariantTermIds);
-                    }
-
                     if ($existingVariant) {
-                        // Update existing variant
+                        // Update the existing variant directly using its ID - this is the key fix
                         $this->syncVariantData($existingVariant, $variantData);
-                        // Sync terms to ensure any changes are reflected
-                        $existingVariant->terms()->sync($actualVariantTermIds);
+
+                        // Update the terms for the existing variant
+                        // Since we now properly handle both formats (structured and flat), $actualVariantTermIds should contain the correct terms
+                        if (!empty($actualVariantTermIds)) {
+                            $existingVariant->terms()->sync($actualVariantTermIds);
+                        }
                         $processedVariantIds[] = $existingVariant->id;
                     } else {
-                        // Create new variant
+                        // Create new variant if no existing one was found by ID
                         $newVariant = $product->variants()->create([
                             'price' => $variantData['price'],
                             'sku' => $variantData['sku'] ?? null,
@@ -152,8 +175,13 @@ class ProductVariantService
                             'image_path' => $variantData['image_path'] ?? null,
                             'is_enabled' => $variantData['is_enabled'] ?? true,
                         ]);
-                        $newVariant->terms()->attach($actualVariantTermIds);
+                        echo "<script>console.log(" . json_encode($ $newVariant) . ");</script>";
+
+                        if (!empty($actualVariantTermIds)) {
+                            $newVariant->terms()->attach($actualVariantTermIds);
+                        }
                         $processedVariantIds[] = $newVariant->id;
+                     echo   $variantData['is_enabled'];
                     }
                 }
             }
@@ -194,14 +222,25 @@ class ProductVariantService
         return null;
     }
 
-    public function syncVariantData(ProductVariant $variant, array $data)
-    {
-        $variant->update([
-            'price' => $data['price'],
-            'sku' => $data['sku'] ?? null,
-            'stock_quantity' => $data['stock_quantity'],
-            'image_path' => $data['image_path'] ?? null,
-            'is_enabled' => $data['is_enabled'] ?? true,
-        ]);
+ public function syncVariantData(ProductVariant $variant, array $data)
+{
+    $isEnabled = $variant->is_enabled;
+
+    // Handle all possible status keys safely
+    if (array_key_exists('is_enabled', $data)) {
+        $isEnabled = in_array($data['is_enabled'], [1, '1', true, 'enabled'], true);
+    } elseif (array_key_exists('status', $data)) {
+        $isEnabled = in_array($data['status'], [1, '1', true, 'enabled'], true);
     }
+
+    $variant->update([
+        'price' => $data['price'],
+        'sku' => $data['sku'] ?? null,
+        'stock_quantity' => $data['stock_quantity'],
+        'image_path' => $data['image_path'] ?? null,
+        'is_enabled' => $isEnabled,
+    ]);
+}
+
+
 }
